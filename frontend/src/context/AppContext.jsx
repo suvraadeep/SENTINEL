@@ -74,13 +74,21 @@ export function AppProvider({ children }) {
   const [anomalyAgentCharts,setAnomalyAgentCharts] = useState([])
   const [rcaAgentCharts,    setRcaAgentCharts]    = useState([])
 
+  // ── Persisted chat histories (survive navigation, reset on dataset change) ─
+  const ANOMALY_WELCOME = { role: 'system', text: 'Ask me anything about these anomalies — I can query the data, explain specific rows, compare distributions, or generate charts.' }
+  const RCA_WELCOME     = { role: 'system', text: 'Ask me anything about the root causes — I can traverse the causal graph, run SQL, compare time periods, or explain statistical evidence.' }
+  const [anomalyChatMessages, setAnomalyChatMessages] = useState([ANOMALY_WELCOME])
+  const [rcaChatMessages,     setRcaChatMessages]     = useState([RCA_WELCOME])
+
   // Clear persisted results when active dataset changes (stale data guard)
   useEffect(() => {
     setAnomalyResult(null)
     setRcaResult(null)
     setAnomalyAgentCharts([])
     setRcaAgentCharts([])
-  }, [activeDataset])
+    setAnomalyChatMessages([ANOMALY_WELCOME])
+    setRcaChatMessages([RCA_WELCOME])
+  }, [activeDataset]) // eslint-disable-line
 
   // ── Analysis history for Insights Hub ────────────────────────────────────
   // Entries: {id, timestamp, type, query, charts, insights, dataset, version, sql}
@@ -180,6 +188,9 @@ export function AppProvider({ children }) {
     rcaResult,         setRcaResult,
     anomalyAgentCharts, setAnomalyAgentCharts,
     rcaAgentCharts,     setRcaAgentCharts,
+    // Persisted chat histories
+    anomalyChatMessages, setAnomalyChatMessages,
+    rcaChatMessages,     setRcaChatMessages,
     // Analysis history
     analysisHistory, addToAnalysisHistory,
     memoryStats, refreshMemory,

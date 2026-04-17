@@ -427,11 +427,7 @@ function VersionToggle({ version, setVersion, hasModified }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatDrawer
 // ─────────────────────────────────────────────────────────────────────────────
-function ChatDrawer({ onClose, context, onPendingCharts }) {
-  const [messages, setMessages] = useState([{
-    role: 'assistant',
-    text: `I have analyzed **${context?.target_col || 'your metric'}** in table **${context?.table || '?'}**.\n\nAsk me anything:\n- "Why did ${context?.target_col || 'this metric'} change?"\n- "Explain the top root cause"\n- "Show me a scatter plot of the top 2 drivers"\n- "What is the Granger causality evidence?"`,
-  }])
+function ChatDrawer({ onClose, context, onPendingCharts, messages, setMessages }) {
   const [input, setInput]         = useState('')
   const [loading, setLoading]     = useState(false)
   const [traversalPath, setTraversalPath] = useState([])
@@ -570,6 +566,7 @@ export default function RCADashboard() {
     datasets, hasModified,
     rcaResult, setRcaResult,
     rcaAgentCharts, setRcaAgentCharts,
+    rcaChatMessages, setRcaChatMessages,
   } = useApp()
 
   const originalTable = useMemo(() => datasets.filter(d => d.filename !== 'modified.csv')[0]?.tables?.[0] ?? '', [datasets])
@@ -1163,6 +1160,8 @@ export default function RCADashboard() {
           onClose={() => setChatOpen(false)}
           context={chatContext}
           onPendingCharts={(p) => setPendingSuggestion(p)}
+          messages={rcaChatMessages}
+          setMessages={setRcaChatMessages}
         />
       )}
 

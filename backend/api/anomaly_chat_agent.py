@@ -22,7 +22,8 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+import operator
+from typing import Annotated, Any, Dict, List, Optional, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -378,8 +379,7 @@ def _run_langgraph_agent(
     from langgraph.prebuilt import ToolNode
     from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, ToolMessage
     from langchain_core.tools import tool as lc_tool
-    from typing import TypedDict, Annotated, Sequence
-    import operator
+    from typing import TypedDict
 
     # Define tools as LangChain tool objects
     @lc_tool

@@ -437,11 +437,7 @@ function VersionToggle({ version, setVersion, hasModified }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatPanel — Anomaly AI chat with MarkdownMessage + agent chart injection
 // ─────────────────────────────────────────────────────────────────────────────
-function ChatPanel({ onClose, context, table, onPendingCharts }) {
-  const [messages, setMessages]   = useState([{
-    role: 'assistant',
-    text: 'Ask me anything about the anomalies detected. I can explain patterns, compute statistics, generate charts, or run SQL queries against your data.',
-  }])
+function ChatPanel({ onClose, context, table, onPendingCharts, messages, setMessages }) {
   const [input, setInput]         = useState('')
   const [loading, setLoading]     = useState(false)
   const [toolBadges, setToolBadges] = useState([])
@@ -676,6 +672,7 @@ export default function AnomalyDashboard() {
     datasets, hasModified,
     anomalyResult, setAnomalyResult,
     anomalyAgentCharts, setAnomalyAgentCharts,
+    anomalyChatMessages, setAnomalyChatMessages,
   } = useApp()
 
   const originalTable = useMemo(() => {
@@ -991,6 +988,8 @@ export default function AnomalyDashboard() {
           }}
           table={result.table}
           onPendingCharts={handlePendingCharts}
+          messages={anomalyChatMessages}
+          setMessages={setAnomalyChatMessages}
         />
       )}
 

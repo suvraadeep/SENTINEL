@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+import operator
+from typing import Annotated, Any, Dict, List, Optional, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -277,7 +278,7 @@ def _tool_explain_cause(feature: str, context: Dict) -> str:
     if dist_corr is not None:
         lines.append(f"| Distance Corr | Catches non-linear/non-monotonic | `{round(float(dist_corr), 4)}` | 0=independent, 1=perfect |")
 
-    if granger_data:
+    if granger_data and isinstance(granger_data, dict):
         best_p = min(
             (v.get("p_value", 1.0) for v in granger_data.values() if isinstance(v, dict)),
             default=None
@@ -302,7 +303,7 @@ def _tool_explain_cause(feature: str, context: Dict) -> str:
             )
     if mi_val is not None and isinstance(mi_val, (int, float)) and mi_val > 0.1:
         evidences.append(f"Mutual information of `{round(mi_val, 3)}` bits indicates non-trivial shared information.")
-    if granger_data:
+    if granger_data and isinstance(granger_data, dict):
         best_p = min(
             (v.get("p_value", 1.0) for v in granger_data.values() if isinstance(v, dict)),
             default=1.0
@@ -416,8 +417,7 @@ def _run_langgraph_agent(
     from langgraph.prebuilt import ToolNode
     from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
     from langchain_core.tools import tool as lc_tool
-    from typing import TypedDict, Annotated, Sequence
-    import operator
+    from typing import TypedDict
 
     @lc_tool
     def run_sql(sql: str) -> str:
@@ -607,9 +607,16 @@ def _context_to_str(context: Dict) -> str:
 
     stat_summary = {}
     sp = stats.get("spearman", {})
-    if sp:
-        top3 = sorted(sp.items(), key=lambda kv: abs(kv[1].get("rho", 0)), reverse=True)[:3]
-        stat_summary["top_spearman"] = {k: v.get("rho") for k, v in top3}
+    if sp and isinstance(sp, dict):
+        top3 = sorted(
+            sp.items(),
+            key=lambda kv: abs(kv[1].get("rho", 0) if isinstance(kv[1], dict) else kv[1]),
+            reverse=True,
+        )[:3]
+        stat_summary["top_spearman"] = {
+            k: (v.get("rho") if isinstance(v, dict) else v)
+            for k, v in top3
+        }
 
     return (
         f"\n\n---\n**ACTIVE RCA CONTEXT:**\n"

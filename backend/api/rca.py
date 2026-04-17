@@ -66,7 +66,7 @@ class RCAChatRequest(BaseModel):
 class RCAChatResponse(BaseModel):
     response:        str
     traversal_path:  List[str]            = []
-    charts:          List[Dict[str, str]] = []
+    charts:          List[Dict[str, Any]] = []
     tool_calls_made: List[str]            = []
 
 class RCATraverseRequest(BaseModel):

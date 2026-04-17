@@ -61,7 +61,7 @@ class AnomalyChatRequest(BaseModel):
 
 class AnomalyChatResponse(BaseModel):
     response:        str
-    charts:          List[Dict[str, str]] = []
+    charts:          List[Dict[str, Any]] = []
     tool_calls_made: List[str]            = []
 
 
@@ -293,7 +293,7 @@ class AnomalyEngine:
                                      n_estimators=100)
             iso.fit(X_scaled)
             if_raw  = -iso.score_samples(X_scaled)
-            if_norm = (if_raw - if_raw.min()) / (if_raw.ptp() + 1e-9)
+            if_norm = (if_raw - if_raw.min()) / ((if_raw.max() - if_raw.min()) + 1e-9)
 
             # PCA reconstruction error
             n_comp  = min(max(len(num_cols) - 1, 1), 5)
@@ -301,7 +301,7 @@ class AnomalyEngine:
             X_pca   = pca.fit_transform(X_scaled)
             X_recon = pca.inverse_transform(X_pca)
             pca_err  = np.mean((X_scaled - X_recon) ** 2, axis=1)
-            pca_norm = (pca_err - pca_err.min()) / (pca_err.ptp() + 1e-9)
+            pca_norm = (pca_err - pca_err.min()) / ((pca_err.max() - pca_err.min()) + 1e-9)
 
             ml_score = 0.60 * if_norm + 0.40 * pca_norm
 
@@ -312,7 +312,7 @@ class AnomalyEngine:
                     mcd = MinCovDet(random_state=42, support_fraction=0.8)
                     mcd.fit(X_scaled)
                     mah = mcd.mahalanobis(X_scaled)
-                    mah_norm = (mah - mah.min()) / (mah.ptp() + 1e-9)
+                    mah_norm = (mah - mah.min()) / ((mah.max() - mah.min()) + 1e-9)
                     ml_score = 0.50 * if_norm + 0.30 * pca_norm + 0.20 * mah_norm
                 except Exception:
                     pass
@@ -853,21 +853,25 @@ async def detect_anomalies(req: AnomalyDetectRequest):
             "stat_severity", pd.Series("MEDIUM", index=stat_view.index)
         )
 
-    # ML method view — annotate severity from score
-    ml_view = ml_df.copy() if not ml_df.empty else pd.DataFrame()
-    if not ml_view.empty and "ml_score" in ml_view.columns:
-        ml_view["severity"] = np.where(
-            ml_view["ml_score"] >= 0.75, "CRITICAL",
-            np.where(ml_view["ml_score"] >= 0.50, "HIGH", "MEDIUM")
-        )
+    # ML method view — keep only rows the model considers anomalous (score >= 0.30)
+    ml_view = pd.DataFrame()
+    if not ml_df.empty and "ml_score" in ml_df.columns:
+        ml_view = ml_df[ml_df["ml_score"] >= 0.30].copy()
+        if not ml_view.empty:
+            ml_view["severity"] = np.where(
+                ml_view["ml_score"] >= 0.75, "CRITICAL",
+                np.where(ml_view["ml_score"] >= 0.50, "HIGH", "MEDIUM")
+            )
 
-    # TS method view
-    ts_view = ts_df.copy() if not ts_df.empty else pd.DataFrame()
-    if not ts_view.empty and "ts_score" in ts_view.columns:
-        ts_view["severity"] = np.where(
-            ts_view["ts_score"] >= 0.75, "CRITICAL",
-            np.where(ts_view["ts_score"] >= 0.50, "HIGH", "MEDIUM")
-        )
+    # TS method view — keep only rows above a meaningful ts_score threshold
+    ts_view = pd.DataFrame()
+    if not ts_df.empty and "ts_score" in ts_df.columns:
+        ts_view = ts_df[ts_df["ts_score"] >= 0.25].copy()
+        if not ts_view.empty:
+            ts_view["severity"] = np.where(
+                ts_view["ts_score"] >= 0.75, "CRITICAL",
+                np.where(ts_view["ts_score"] >= 0.50, "HIGH", "MEDIUM")
+            )
 
     methods = {
         "statistical": _method_result(stat_view),
