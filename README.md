@@ -422,7 +422,7 @@ The anomaly boost of $+0.15$ links the RCA and anomaly detection pipelines: feat
 
 ## Memory System
 
-![Memory Architecture](images/memory_architecture.jpeg)
+![Memory Architecture](images/memory_architecture.png)
 
 SENTINEL maintains four tiers of persistent memory that survive server restarts and inform every query.
 
