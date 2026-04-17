@@ -1,0 +1,158 @@
+<svg viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#94A3B8"/>
+    </marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#3B82F6"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#10B981"/>
+    </marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#8B5CF6"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="580" fill="#0F172A" rx="12"/>
+
+  <!-- Title -->
+  <text x="500" y="34" text-anchor="middle" fill="#F1F5F9" font-size="18" font-weight="700">SENTINEL Memory Architecture</text>
+  <text x="500" y="52" text-anchor="middle" fill="#64748B" font-size="12">Multi-tier episodic, causal, and procedural memory with domain isolation</text>
+
+  <!-- ── Dataset Upload pipeline (top) ── -->
+  <rect x="30" y="70" width="940" height="80" rx="10" fill="#0A1628" stroke="#1E293B" stroke-width="1.5"/>
+  <text x="500" y="89" text-anchor="middle" fill="#94A3B8" font-size="11" font-weight="700">Dataset Upload Pipeline  (seed_for_dataset_type called after every upload)</text>
+
+  <rect x="48" y="100" width="118" height="36" rx="7" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="107" y="114" text-anchor="middle" fill="#93C5FD" font-size="10" font-weight="600">CSV / Excel</text>
+  <text x="107" y="128" text-anchor="middle" fill="#93C5FD" font-size="10">/ Parquet / SQLite</text>
+  <line x1="166" y1="118" x2="196" y2="118" stroke="#3B82F6" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+
+  <rect x="198" y="100" width="118" height="36" rx="7" fill="#1E293B" stroke="#06B6D4" stroke-width="1.5"/>
+  <text x="257" y="114" text-anchor="middle" fill="#67E8F9" font-size="10" font-weight="600">DuckDB</text>
+  <text x="257" y="128" text-anchor="middle" fill="#67E8F9" font-size="10">Ingest + Schema</text>
+  <line x1="316" y1="118" x2="346" y2="118" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="348" y="100" width="140" height="36" rx="7" fill="#1E293B" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="418" y="114" text-anchor="middle" fill="#C4B5FD" font-size="10" font-weight="600">Domain Detector</text>
+  <text x="418" y="128" text-anchor="middle" fill="#6D28D9" font-size="9">6-domain signal scoring</text>
+  <line x1="488" y1="118" x2="518" y2="118" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="520" y="100" width="140" height="36" rx="7" fill="#1E293B" stroke="#10B981" stroke-width="1.5"/>
+  <text x="590" y="114" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="600">Column Introspect</text>
+  <text x="590" y="128" text-anchor="middle" fill="#065F46" font-size="9">semantic role mapping</text>
+  <line x1="660" y1="118" x2="690" y2="118" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="692" y="100" width="140" height="36" rx="7" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="762" y="114" text-anchor="middle" fill="#FCD34D" font-size="10" font-weight="600">Pattern Seeding</text>
+  <text x="762" y="128" text-anchor="middle" fill="#92400E" font-size="9">real column names → L4</text>
+  <line x1="832" y1="118" x2="862" y2="118" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="864" y="100" width="96" height="36" rx="7" fill="#1E293B" stroke="#EC4899" stroke-width="1.5"/>
+  <text x="912" y="114" text-anchor="middle" fill="#F9A8D4" font-size="10" font-weight="600">Namespace</text>
+  <text x="912" y="128" text-anchor="middle" fill="#9D174D" font-size="9">update domain var</text>
+
+  <!-- ── Three Memory Tiers ── -->
+
+  <!-- L2 Episodic -->
+  <rect x="30" y="170" width="290" height="360" rx="12" fill="#0A1628" stroke="#3B82F6" stroke-width="2"/>
+  <rect x="30" y="170" width="290" height="40" rx="12" fill="#1E3A5F"/>
+  <rect x="30" y="197" width="290" height="13" fill="#1E3A5F"/>
+  <text x="175" y="194" text-anchor="middle" fill="#93C5FD" font-size="13" font-weight="700">L2 — Episodic Memory</text>
+  <text x="175" y="222" text-anchor="middle" fill="#64748B" font-size="10">Past queries cached by domain</text>
+
+  <text x="50" y="248" fill="#94A3B8" font-size="10" font-weight="600">Storage:</text>
+  <text x="50" y="262" fill="#64748B" font-size="10">ChromaDB persistent collection</text>
+  <text x="50" y="278" fill="#94A3B8" font-size="10" font-weight="600">Embedding Model:</text>
+  <text x="50" y="292" fill="#64748B" font-size="10">BAAI/bge-large-en-v1.5</text>
+  <text x="50" y="306" fill="#64748B" font-size="10">1024-dim, top MTEB retrieval</text>
+
+  <rect x="46" y="316" width="258" height="50" rx="6" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+  <text x="175" y="332" text-anchor="middle" fill="#93C5FD" font-size="10" font-weight="600">Query Vector</text>
+  <text x="175" y="348" text-anchor="middle" fill="#60A5FA" font-size="9">embed("Represent for retrieval: " + q)</text>
+  <text x="175" y="362" text-anchor="middle" fill="#1E40AF" font-size="9">normalize=True, cosine similarity</text>
+
+  <text x="50" y="386" fill="#94A3B8" font-size="10" font-weight="600">Metadata per episode:</text>
+  <text x="50" y="400" fill="#64748B" font-size="10">sql, result_summary, feedback, score</text>
+  <text x="50" y="414" fill="#64748B" font-size="10">timestamp, dataset_type</text>
+
+  <rect x="46" y="424" width="258" height="50" rx="6" fill="#1E293B" stroke="#EF4444" stroke-width="1"/>
+  <text x="175" y="440" text-anchor="middle" fill="#FCA5A5" font-size="10" font-weight="600">Domain Filter (critical)</text>
+  <text x="175" y="455" text-anchor="middle" fill="#EF4444" font-size="9">episodes filtered by dataset_type</text>
+  <text x="175" y="469" text-anchor="middle" fill="#7F1D1D" font-size="9">ecommerce SQL never reaches HR query</text>
+
+  <text x="50" y="498" fill="#94A3B8" font-size="10" font-weight="600">l2_retrieve(q, top_k=3):</text>
+  <text x="50" y="512" fill="#64748B" font-size="10">query 4k results, filter by domain,</text>
+  <text x="50" y="526" fill="#64748B" font-size="10">return top-3 similar episodes</text>
+
+  <!-- L3 Causal Graph -->
+  <rect x="355" y="170" width="290" height="360" rx="12" fill="#0A1628" stroke="#8B5CF6" stroke-width="2"/>
+  <rect x="355" y="170" width="290" height="40" rx="12" fill="#2E1B4E"/>
+  <rect x="355" y="197" width="290" height="13" fill="#2E1B4E"/>
+  <text x="500" y="194" text-anchor="middle" fill="#C4B5FD" font-size="13" font-weight="700">L3 — Causal Graph</text>
+  <text x="500" y="222" text-anchor="middle" fill="#64748B" font-size="10">Schema-derived causal knowledge graph</text>
+
+  <text x="375" y="248" fill="#94A3B8" font-size="10" font-weight="600">Storage:</text>
+  <text x="375" y="262" fill="#64748B" font-size="10">NetworkX DiGraph (GML on disk)</text>
+  <text x="375" y="278" fill="#94A3B8" font-size="10" font-weight="600">Construction:</text>
+  <text x="375" y="292" fill="#64748B" font-size="10">build_l3_graph() from DB schema</text>
+  <text x="375" y="306" fill="#64748B" font-size="10">tables, columns, FK relationships</text>
+
+  <rect x="371" y="316" width="258" height="66" rx="6" fill="#1E293B" stroke="#8B5CF6" stroke-width="1"/>
+  <text x="500" y="332" text-anchor="middle" fill="#C4B5FD" font-size="10" font-weight="600">Graph Operations</text>
+  <text x="375" y="348" fill="#A78BFA" font-size="9">  BFS upstream from target node</text>
+  <text x="375" y="362" fill="#A78BFA" font-size="9">  downstream causal chain</text>
+  <text x="375" y="376" fill="#A78BFA" font-size="9">  business rule nodes (e.g. price = base - discount)</text>
+
+  <text x="375" y="404" fill="#94A3B8" font-size="10" font-weight="600">Rebuilds on upload:</text>
+  <text x="375" y="418" fill="#64748B" font-size="10">new schema → new graph edges</text>
+  <text x="375" y="432" fill="#64748B" font-size="10">FK edges → causal priors for RCA</text>
+
+  <rect x="371" y="444" width="258" height="50" rx="6" fill="#1E293B" stroke="#8B5CF6" stroke-width="1"/>
+  <text x="500" y="460" text-anchor="middle" fill="#C4B5FD" font-size="10" font-weight="600">l3_get_context(entity)</text>
+  <text x="500" y="475" text-anchor="middle" fill="#A78BFA" font-size="9">upstream_nodes, downstream_nodes</text>
+  <text x="500" y="489" text-anchor="middle" fill="#6D28D9" font-size="9">edge weights = FK multiplicity</text>
+
+  <text x="375" y="516" fill="#94A3B8" font-size="10" font-weight="600">Used by:</text>
+  <text x="375" y="530" fill="#64748B" font-size="10">intent_classifier, rca_agent, RCA API</text>
+
+  <!-- L4 Procedural -->
+  <rect x="680" y="170" width="290" height="360" rx="12" fill="#0A1628" stroke="#10B981" stroke-width="2"/>
+  <rect x="680" y="170" width="290" height="40" rx="12" fill="#064E3B"/>
+  <rect x="680" y="197" width="290" height="13" fill="#064E3B"/>
+  <text x="825" y="194" text-anchor="middle" fill="#6EE7B7" font-size="13" font-weight="700">L4 — Procedural Memory</text>
+  <text x="825" y="222" text-anchor="middle" fill="#64748B" font-size="10">Domain-specific SQL patterns</text>
+
+  <text x="700" y="248" fill="#94A3B8" font-size="10" font-weight="600">Storage:</text>
+  <text x="700" y="262" fill="#64748B" font-size="10">ChromaDB persistent collection</text>
+  <text x="700" y="278" fill="#94A3B8" font-size="10" font-weight="600">Seeded with real column names:</text>
+  <text x="700" y="292" fill="#64748B" font-size="10">_introspect_table() maps actual cols</text>
+  <text x="700" y="306" fill="#64748B" font-size="10">to semantic roles (amount, date, ...)</text>
+
+  <rect x="696" y="316" width="258" height="66" rx="6" fill="#1E293B" stroke="#10B981" stroke-width="1"/>
+  <text x="825" y="332" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="600">Domain Pattern Libraries</text>
+  <text x="700" y="348" fill="#34D399" font-size="9">  ecommerce: 8 patterns (cohort, seller, ...)</text>
+  <text x="700" y="362" fill="#34D399" font-size="9">  real_estate: 8 patterns (price/sqft, ...)</text>
+  <text x="700" y="376" fill="#34D399" font-size="9">  financial / hr / generic fallbacks</text>
+
+  <text x="700" y="404" fill="#94A3B8" font-size="10" font-weight="600">Stale pattern cleanup:</text>
+  <text x="700" y="418" fill="#64748B" font-size="10">on upload, delete patterns from</text>
+  <text x="700" y="432" fill="#64748B" font-size="10">other domains (no contamination)</text>
+
+  <rect x="696" y="444" width="258" height="50" rx="6" fill="#1E293B" stroke="#10B981" stroke-width="1"/>
+  <text x="825" y="460" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="600">l4_retrieve(question, top_k=2)</text>
+  <text x="825" y="475" text-anchor="middle" fill="#34D399" font-size="9">few-shot SQL patterns for LLM prompt</text>
+  <text x="825" y="489" text-anchor="middle" fill="#065F46" font-size="9">filtered to current domain</text>
+
+  <text x="700" y="516" fill="#94A3B8" font-size="10" font-weight="600">Used by:</text>
+  <text x="700" y="530" fill="#64748B" font-size="10">extract_first_sql (few-shot prompting)</text>
+
+  <!-- Connecting arrows between tiers and LLM prompt -->
+  <line x1="175" y1="530" x2="175" y2="556" stroke="#3B82F6" stroke-width="1" stroke-dasharray="3 2"/>
+  <line x1="500" y1="530" x2="500" y2="556" stroke="#8B5CF6" stroke-width="1" stroke-dasharray="3 2"/>
+  <line x1="825" y1="530" x2="825" y2="556" stroke="#10B981" stroke-width="1" stroke-dasharray="3 2"/>
+  <line x1="175" y1="556" x2="825" y2="556" stroke="#475569" stroke-width="1" stroke-dasharray="3 2"/>
+  <line x1="500" y1="556" x2="500" y2="568" stroke="#475569" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arr)"/>
+  <text x="500" y="565" text-anchor="middle" fill="#64748B" font-size="9">Feeds into LLM prompt context at query time</text>
+</svg>

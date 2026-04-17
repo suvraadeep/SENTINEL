@@ -1,0 +1,139 @@
+<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="560" fill="#0F172A" rx="12"/>
+
+  <!-- Title -->
+  <text x="480" y="36" text-anchor="middle" fill="#F1F5F9" font-size="18" font-weight="700">SQL Error Taxonomy</text>
+  <text x="480" y="54" text-anchor="middle" fill="#64748B" font-size="12">Structured error classification used by the Guided Correction Loop</text>
+
+  <!-- Root node -->
+  <rect x="370" y="74" width="220" height="44" rx="10" fill="#1E293B" stroke="#94A3B8" stroke-width="2"/>
+  <text x="480" y="97" text-anchor="middle" fill="#F1F5F9" font-size="13" font-weight="700">SQL Error Taxonomy</text>
+  <text x="480" y="112" text-anchor="middle" fill="#64748B" font-size="10">8 categories, 32 error types</text>
+
+  <!-- Branches from root down -->
+  <line x1="480" y1="118" x2="480" y2="152" stroke="#475569" stroke-width="1.5"/>
+  <!-- Horizontal spread -->
+  <line x1="100" y1="152" x2="860" y2="152" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- ── Syntax ── -->
+  <line x1="100" y1="152" x2="100" y2="172" stroke="#475569" stroke-width="1.5"/>
+  <rect x="30" y="172" width="140" height="38" rx="8" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="100" y="188" text-anchor="middle" fill="#93C5FD" font-size="11" font-weight="600">Syntax</text>
+  <text x="100" y="202" text-anchor="middle" fill="#1E40AF" font-size="9">parsing failures</text>
+  <line x1="100" y1="210" x2="100" y2="240" stroke="#3B82F6" stroke-width="1"/>
+  <rect x="22" y="240" width="156" height="62" rx="6" fill="#0F172A" stroke="#3B82F6" stroke-width="1"/>
+  <text x="100" y="257" text-anchor="middle" fill="#60A5FA" font-size="9">sql_syntax_error</text>
+  <text x="100" y="271" text-anchor="middle" fill="#60A5FA" font-size="9">invalid_alias</text>
+  <text x="100" y="285" text-anchor="middle" fill="#60A5FA" font-size="9">keyword_typo</text>
+  <text x="100" y="298" text-anchor="middle" fill="#60A5FA" font-size="9">missing_semicolon</text>
+
+  <!-- ── Filter ── -->
+  <line x1="230" y1="152" x2="230" y2="172" stroke="#475569" stroke-width="1.5"/>
+  <rect x="160" y="172" width="140" height="38" rx="8" fill="#1E293B" stroke="#06B6D4" stroke-width="1.5"/>
+  <text x="230" y="188" text-anchor="middle" fill="#67E8F9" font-size="11" font-weight="600">Filter</text>
+  <text x="230" y="202" text-anchor="middle" fill="#155E75" font-size="9">WHERE clause issues</text>
+  <line x1="230" y1="210" x2="230" y2="240" stroke="#06B6D4" stroke-width="1"/>
+  <rect x="152" y="240" width="156" height="76" rx="6" fill="#0F172A" stroke="#06B6D4" stroke-width="1"/>
+  <text x="230" y="257" text-anchor="middle" fill="#22D3EE" font-size="9">where_missing</text>
+  <text x="230" y="271" text-anchor="middle" fill="#22D3EE" font-size="9">condition_wrong_col</text>
+  <text x="230" y="285" text-anchor="middle" fill="#22D3EE" font-size="9">condition_type_mismatch</text>
+  <text x="230" y="299" text-anchor="middle" fill="#22D3EE" font-size="9">null_comparison_error</text>
+  <text x="230" y="313" text-anchor="middle" fill="#22D3EE" font-size="9">like_pattern_wrong</text>
+
+  <!-- ── Join ── -->
+  <line x1="360" y1="152" x2="360" y2="172" stroke="#475569" stroke-width="1.5"/>
+  <rect x="290" y="172" width="140" height="38" rx="8" fill="#1E293B" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="360" y="188" text-anchor="middle" fill="#C4B5FD" font-size="11" font-weight="600">Join</text>
+  <text x="360" y="202" text-anchor="middle" fill="#4C1D95" font-size="9">table relationship errors</text>
+  <line x1="360" y1="210" x2="360" y2="240" stroke="#8B5CF6" stroke-width="1"/>
+  <rect x="282" y="240" width="156" height="76" rx="6" fill="#0F172A" stroke="#8B5CF6" stroke-width="1"/>
+  <text x="360" y="257" text-anchor="middle" fill="#A78BFA" font-size="9">join_missing</text>
+  <text x="360" y="271" text-anchor="middle" fill="#A78BFA" font-size="9">join_wrong_type</text>
+  <text x="360" y="285" text-anchor="middle" fill="#A78BFA" font-size="9">extra_table</text>
+  <text x="360" y="299" text-anchor="middle" fill="#A78BFA" font-size="9">incorrect_col</text>
+  <text x="360" y="313" text-anchor="middle" fill="#A78BFA" font-size="9">cartesian_product</text>
+
+  <!-- ── Schema Link ── -->
+  <line x1="480" y1="152" x2="480" y2="172" stroke="#475569" stroke-width="1.5"/>
+  <rect x="412" y="172" width="136" height="38" rx="8" fill="#1E293B" stroke="#EC4899" stroke-width="1.5"/>
+  <text x="480" y="188" text-anchor="middle" fill="#F9A8D4" font-size="11" font-weight="600">Schema Link</text>
+  <text x="480" y="202" text-anchor="middle" fill="#9D174D" font-size="9">object resolution</text>
+  <line x1="480" y1="210" x2="480" y2="240" stroke="#EC4899" stroke-width="1"/>
+  <rect x="404" y="240" width="152" height="76" rx="6" fill="#0F172A" stroke="#EC4899" stroke-width="1"/>
+  <text x="480" y="257" text-anchor="middle" fill="#F472B6" font-size="9">table_missing</text>
+  <text x="480" y="271" text-anchor="middle" fill="#F472B6" font-size="9">col_missing</text>
+  <text x="480" y="285" text-anchor="middle" fill="#F472B6" font-size="9">ambiguous_col</text>
+  <text x="480" y="299" text-anchor="middle" fill="#F472B6" font-size="9">incorrect_foreign_key</text>
+  <text x="480" y="313" text-anchor="middle" fill="#F472B6" font-size="9">wrong_schema</text>
+
+  <!-- ── Aggregation ── -->
+  <line x1="610" y1="152" x2="610" y2="172" stroke="#475569" stroke-width="1.5"/>
+  <rect x="540" y="172" width="140" height="38" rx="8" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="610" y="188" text-anchor="middle" fill="#FCD34D" font-size="11" font-weight="600">Aggregation</text>
+  <text x="610" y="202" text-anchor="middle" fill="#92400E" font-size="9">GROUP BY / HAVING</text>
+  <line x1="610" y1="210" x2="610" y2="240" stroke="#F59E0B" stroke-width="1"/>
+  <rect x="530" y="240" width="160" height="90" rx="6" fill="#0F172A" stroke="#F59E0B" stroke-width="1"/>
+  <text x="610" y="257" text-anchor="middle" fill="#FDE68A" font-size="9">agg_no_groupby</text>
+  <text x="610" y="271" text-anchor="middle" fill="#FDE68A" font-size="9">groupby_missing_col</text>
+  <text x="610" y="285" text-anchor="middle" fill="#FDE68A" font-size="9">having_without_groupby</text>
+  <text x="610" y="299" text-anchor="middle" fill="#FDE68A" font-size="9">having_incorrect</text>
+  <text x="610" y="313" text-anchor="middle" fill="#FDE68A" font-size="9">having_vs_where</text>
+  <text x="610" y="327" text-anchor="middle" fill="#FDE68A" font-size="9">missing_distinct</text>
+
+  <!-- ── Subquery ── -->
+  <line x1="730" y1="152" x2="730" y2="172" stroke="#475569" stroke-width="1.5"/>
+  <rect x="660" y="172" width="140" height="38" rx="8" fill="#1E293B" stroke="#10B981" stroke-width="1.5"/>
+  <text x="730" y="188" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="600">Subquery</text>
+  <text x="730" y="202" text-anchor="middle" fill="#065F46" font-size="9">nested / correlated</text>
+  <line x1="730" y1="210" x2="730" y2="240" stroke="#10B981" stroke-width="1"/>
+  <rect x="652" y="240" width="156" height="62" rx="6" fill="#0F172A" stroke="#10B981" stroke-width="1"/>
+  <text x="730" y="257" text-anchor="middle" fill="#34D399" font-size="9">unused_subquery</text>
+  <text x="730" y="271" text-anchor="middle" fill="#34D399" font-size="9">subquery_missing</text>
+  <text x="730" y="285" text-anchor="middle" fill="#34D399" font-size="9">subquery_correlation_error</text>
+  <text x="730" y="299" text-anchor="middle" fill="#34D399" font-size="9">cte_reference_error</text>
+
+  <!-- ── Value / Set Ops / Other -->
+  <line x1="860" y1="152" x2="860" y2="172" stroke="#475569" stroke-width="1.5"/>
+  <rect x="798" y="172" width="134" height="38" rx="8" fill="#1E293B" stroke="#EF4444" stroke-width="1.5"/>
+  <text x="860" y="188" text-anchor="middle" fill="#FCA5A5" font-size="11" font-weight="600">Value / Other</text>
+  <text x="860" y="202" text-anchor="middle" fill="#7F1D1D" font-size="9">misc issues</text>
+  <line x1="860" y1="210" x2="860" y2="240" stroke="#EF4444" stroke-width="1"/>
+  <rect x="790" y="240" width="150" height="90" rx="6" fill="#0F172A" stroke="#EF4444" stroke-width="1"/>
+  <text x="860" y="257" text-anchor="middle" fill="#FCA5A5" font-size="9">hardcoded_value</text>
+  <text x="860" y="271" text-anchor="middle" fill="#FCA5A5" font-size="9">value_format_wrong</text>
+  <text x="860" y="285" text-anchor="middle" fill="#FCA5A5" font-size="9">order_by_missing</text>
+  <text x="860" y="299" text-anchor="middle" fill="#FCA5A5" font-size="9">limit_missing</text>
+  <text x="860" y="313" text-anchor="middle" fill="#FCA5A5" font-size="9">union_missing</text>
+  <text x="860" y="327" text-anchor="middle" fill="#FCA5A5" font-size="9">except_missing</text>
+
+  <!-- Bottom note -->
+  <text x="480" y="380" text-anchor="middle" fill="#475569" font-size="10">Each error type triggers a targeted rewrite strategy in the Correction Plan Agent</text>
+  <text x="480" y="396" text-anchor="middle" fill="#475569" font-size="10">The correction loop runs up to 5 iterations before returning the best available result</text>
+
+  <!-- Legend -->
+  <rect x="30" y="420" width="900" height="116" rx="8" fill="#0A1628" stroke="#1E293B" stroke-width="1"/>
+  <text x="480" y="440" text-anchor="middle" fill="#94A3B8" font-size="11" font-weight="700">Correction Strategy per Error Category</text>
+  <text x="50" y="460" fill="#93C5FD" font-size="10">Syntax:</text>
+  <text x="110" y="460" fill="#64748B" font-size="10">reparse + fix keyword / alias</text>
+  <text x="50" y="476" fill="#67E8F9" font-size="10">Filter:</text>
+  <text x="110" y="476" fill="#64748B" font-size="10">infer correct column from schema</text>
+  <text x="50" y="492" fill="#C4B5FD" font-size="10">Join:</text>
+  <text x="110" y="492" fill="#64748B" font-size="10">re-derive foreign key from L3 causal graph</text>
+  <text x="50" y="508" fill="#F9A8D4" font-size="10">Schema:</text>
+  <text x="110" y="508" fill="#64748B" font-size="10">re-run schema linker with stricter matching</text>
+  <text x="340" y="460" fill="#FCD34D" font-size="10">Aggregation:</text>
+  <text x="440" y="460" fill="#64748B" font-size="10">add missing GROUP BY / fix HAVING</text>
+  <text x="340" y="476" fill="#6EE7B7" font-size="10">Subquery:</text>
+  <text x="440" y="476" fill="#64748B" font-size="10">rewrite as CTE or flatten to simple join</text>
+  <text x="340" y="492" fill="#FCA5A5" font-size="10">Value/Other:</text>
+  <text x="440" y="492" fill="#64748B" font-size="10">parameterize literals, add ORDER BY + LIMIT</text>
+  <text x="340" y="508" fill="#94A3B8" font-size="10">All:</text>
+  <text x="440" y="508" fill="#64748B" font-size="10">inject chain-of-thought reasoning before each rewrite attempt</text>
+  <text x="480" y="528" text-anchor="middle" fill="#1E293B" font-size="9">─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</text>
+</svg>

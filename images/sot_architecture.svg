@@ -1,0 +1,160 @@
+<svg viewBox="0 0 960 520" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#94A3B8"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#10B981"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#EF4444"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#F59E0B"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="520" fill="#0F172A" rx="12"/>
+
+  <!-- Title -->
+  <text x="480" y="34" text-anchor="middle" fill="#F1F5F9" font-size="18" font-weight="700" letter-spacing="0.5">SQL-of-Thought (SoT) Architecture</text>
+  <text x="480" y="52" text-anchor="middle" fill="#64748B" font-size="12">Schema-Linked Decomposition with Guided Correction Loop</text>
+
+  <!-- ─────────────────────────────── TOP FLOW ROW ──────────────────────────────── -->
+
+  <!-- User -->
+  <circle cx="54" cy="155" r="20" fill="none" stroke="#3B82F6" stroke-width="2"/>
+  <text x="54" y="151" text-anchor="middle" fill="#3B82F6" font-size="16">&#x1F464;</text>
+  <text x="54" y="172" text-anchor="middle" fill="#94A3B8" font-size="10" font-weight="600">USER</text>
+
+  <!-- NL Question -->
+  <rect x="88" y="130" width="112" height="50" rx="10" fill="#1E293B" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="144" y="151" text-anchor="middle" fill="#93C5FD" font-size="11" font-weight="600">Natural Language</text>
+  <text x="144" y="166" text-anchor="middle" fill="#93C5FD" font-size="11" font-weight="600">Question</text>
+
+  <!-- Arrow NL -> IC -->
+  <line x1="200" y1="155" x2="218" y2="155" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Intent Classifier -->
+  <rect x="220" y="127" width="118" height="56" rx="10" fill="#1E293B" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="279" y="149" text-anchor="middle" fill="#C4B5FD" font-size="11" font-weight="600">Intent</text>
+  <text x="279" y="163" text-anchor="middle" fill="#C4B5FD" font-size="11" font-weight="600">Classifier</text>
+  <text x="279" y="176" text-anchor="middle" fill="#6D28D9" font-size="9">sql/rca/forecast/math</text>
+
+  <!-- Arrow IC -> SL -->
+  <line x1="338" y1="155" x2="356" y2="155" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Schema Linker -->
+  <rect x="358" y="127" width="118" height="56" rx="10" fill="#1E293B" stroke="#EC4899" stroke-width="1.5"/>
+  <text x="417" y="149" text-anchor="middle" fill="#F9A8D4" font-size="11" font-weight="600">Schema</text>
+  <text x="417" y="163" text-anchor="middle" fill="#F9A8D4" font-size="11" font-weight="600">Linker</text>
+  <text x="417" y="176" text-anchor="middle" fill="#9D174D" font-size="9">table + column linking</text>
+
+  <!-- Arrow SL -> QD -->
+  <line x1="476" y1="155" x2="494" y2="155" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Query Decomposer -->
+  <rect x="496" y="127" width="118" height="56" rx="10" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="555" y="149" text-anchor="middle" fill="#FCD34D" font-size="11" font-weight="600">Query</text>
+  <text x="555" y="163" text-anchor="middle" fill="#FCD34D" font-size="11" font-weight="600">Decomposer</text>
+  <text x="555" y="176" text-anchor="middle" fill="#92400E" font-size="9">subproblems + plan</text>
+
+  <!-- Arrow QD -> SG -->
+  <line x1="614" y1="155" x2="632" y2="155" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- SQL Generator -->
+  <rect x="634" y="127" width="118" height="56" rx="10" fill="#1E293B" stroke="#06B6D4" stroke-width="1.5"/>
+  <text x="693" y="149" text-anchor="middle" fill="#67E8F9" font-size="11" font-weight="600">SQL Generator</text>
+  <text x="693" y="163" text-anchor="middle" fill="#67E8F9" font-size="11" font-weight="600">(CoT + L4 shots)</text>
+  <text x="693" y="176" text-anchor="middle" fill="#155E75" font-size="9">top-3 candidates</text>
+
+  <!-- Arrow SG -> DB -->
+  <line x1="752" y1="155" x2="770" y2="155" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- DuckDB Engine -->
+  <rect x="772" y="120" width="118" height="70" rx="10" fill="#1E293B" stroke="#10B981" stroke-width="2"/>
+  <text x="831" y="149" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="600">DuckDB</text>
+  <text x="831" y="163" text-anchor="middle" fill="#6EE7B7" font-size="11" font-weight="600">Execution Engine</text>
+  <text x="831" y="178" text-anchor="middle" fill="#065F46" font-size="9">vectorized SQL</text>
+
+  <!-- Chain of Thought annotation -->
+  <ellipse cx="693" cy="104" rx="56" ry="18" fill="none" stroke="#6366F1" stroke-width="1" stroke-dasharray="4 2"/>
+  <text x="693" y="100" text-anchor="middle" fill="#A5B4FC" font-size="9">&#x1F9E0; Chain of Thought</text>
+  <text x="693" y="112" text-anchor="middle" fill="#A5B4FC" font-size="9">reasoning traces</text>
+  <line x1="693" y1="122" x2="693" y2="127" stroke="#6366F1" stroke-width="1" stroke-dasharray="3 2"/>
+
+  <!-- ─────────────────────── ERROR / SUCCESS PATH ───────────────────── -->
+
+  <!-- Arrow down from DuckDB to Error check -->
+  <line x1="831" y1="190" x2="831" y2="228" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Error Diamond -->
+  <polygon points="831,230 865,258 831,286 797,258" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="831" y="254" text-anchor="middle" fill="#FCD34D" font-size="10" font-weight="700">SQL</text>
+  <text x="831" y="267" text-anchor="middle" fill="#FCD34D" font-size="10" font-weight="700">OK?</text>
+
+  <!-- Success arrow right -->
+  <line x1="865" y1="258" x2="910" y2="258" stroke="#10B981" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <rect x="912" y="238" width="36" height="40" rx="8" fill="#065F46" stroke="#10B981" stroke-width="1.5"/>
+  <text x="930" y="254" text-anchor="middle" fill="#6EE7B7" font-size="10" font-weight="700">&#x2713;</text>
+  <text x="930" y="270" text-anchor="middle" fill="#6EE7B7" font-size="9">Done</text>
+  <text x="887" y="248" text-anchor="middle" fill="#10B981" font-size="9">Success</text>
+
+  <!-- Error arrow down -->
+  <line x1="831" y1="286" x2="831" y2="310" stroke="#EF4444" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text x="844" y="302" fill="#EF4444" font-size="9">Error</text>
+
+  <!-- Guided Correction Loop Dashed Box -->
+  <rect x="190" y="308" width="660" height="148" rx="12" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="360" y="326" fill="#64748B" font-size="10" font-weight="600" font-style="italic">Guided Correction Loop  (max 5 retries)</text>
+
+  <!-- Correction Plan Agent -->
+  <rect x="210" y="336" width="148" height="56" rx="10" fill="#1E293B" stroke="#EC4899" stroke-width="1.5"/>
+  <text x="284" y="358" text-anchor="middle" fill="#F9A8D4" font-size="11" font-weight="600">Correction</text>
+  <text x="284" y="372" text-anchor="middle" fill="#F9A8D4" font-size="11" font-weight="600">Plan Agent</text>
+  <text x="284" y="385" text-anchor="middle" fill="#9D174D" font-size="9">error type routing</text>
+
+  <!-- Arrow Correction Plan -> Correction SQL -->
+  <line x1="358" y1="364" x2="388" y2="364" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Correction SQL Agent -->
+  <rect x="390" y="336" width="148" height="56" rx="10" fill="#1E293B" stroke="#EC4899" stroke-width="1.5"/>
+  <text x="464" y="358" text-anchor="middle" fill="#F9A8D4" font-size="11" font-weight="600">Correction</text>
+  <text x="464" y="372" text-anchor="middle" fill="#F9A8D4" font-size="11" font-weight="600">SQL Agent</text>
+  <text x="464" y="385" text-anchor="middle" fill="#9D174D" font-size="9">rewrite + fix</text>
+
+  <!-- SQL Validator -->
+  <rect x="570" y="336" width="148" height="56" rx="10" fill="#1E293B" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="644" y="358" text-anchor="middle" fill="#C4B5FD" font-size="11" font-weight="600">SQL Validator</text>
+  <text x="644" y="372" text-anchor="middle" fill="#C4B5FD" font-size="11" font-weight="600">+ Re-execute</text>
+  <text x="644" y="385" text-anchor="middle" fill="#6D28D9" font-size="9">retry ≤ 5 times</text>
+
+  <!-- Arrow Correction SQL -> SQL Validator -->
+  <line x1="538" y1="364" x2="568" y2="364" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Arrow SQL Validator back up to DuckDB -->
+  <line x1="718" y1="364" x2="780" y2="364" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="780" y1="364" x2="780" y2="258" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="780" y1="258" x2="797" y2="258" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Arrow from Error down to Correction Plan Agent -->
+  <line x1="831" y1="310" x2="831" y2="420" stroke="#EF4444" stroke-width="1.5"/>
+  <line x1="831" y1="420" x2="285" y2="420" stroke="#EF4444" stroke-width="1.5"/>
+  <line x1="285" y1="420" x2="285" y2="392" stroke="#EF4444" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+
+  <!-- Error Taxonomy -->
+  <rect x="210" y="456" width="240" height="40" rx="8" fill="#1E293B" stroke="#EF4444" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="330" y="472" text-anchor="middle" fill="#FCA5A5" font-size="10" font-weight="600">&#x1F4CB; Error Taxonomy</text>
+  <text x="330" y="486" text-anchor="middle" fill="#7F1D1D" font-size="9">Syntax | Filter | Join | Aggregation | Subquery</text>
+  <line x1="284" y1="392" x2="284" y2="456" stroke="#EF4444" stroke-width="1" stroke-dasharray="3 2"/>
+
+  <!-- Chain of Thought (correction) -->
+  <rect x="470" y="456" width="170" height="40" rx="8" fill="#1E293B" stroke="#6366F1" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="555" y="472" text-anchor="middle" fill="#A5B4FC" font-size="10" font-weight="600">&#x1F9E0; Chain of Thought</text>
+  <text x="555" y="486" text-anchor="middle" fill="#312E81" font-size="9">step-by-step reasoning</text>
+  <line x1="464" y1="392" x2="555" y2="456" stroke="#6366F1" stroke-width="1" stroke-dasharray="3 2"/>
+
+  <!-- Arrows user to NL -->
+  <line x1="74" y1="155" x2="86" y2="155" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>

@@ -1,0 +1,167 @@
+<svg viewBox="0 0 1120 800" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#64748B"/>
+    </marker>
+    <marker id="arr-b" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#2563EB"/>
+    </marker>
+  </defs>
+
+  <!-- Light background -->
+  <rect width="1120" height="800" fill="#F8FAFC" rx="14"/>
+  <!-- Subtle grid -->
+  <rect x="0" y="0" width="1120" height="800" fill="url(#grid)" rx="14"/>
+
+  <!-- Title -->
+  <text x="560" y="36" text-anchor="middle" fill="#0F172A" font-size="20" font-weight="700">SENTINEL Root Cause Analysis (RCA) Architecture</text>
+  <text x="560" y="57" text-anchor="middle" fill="#64748B" font-size="12">Four-layer causal discovery: Statistical + Temporal + Causal Graph + Traversal</text>
+
+  <!-- Input box -->
+  <rect x="380" y="70" width="360" height="48" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+  <text x="560" y="90" text-anchor="middle" fill="#1E3A8A" font-size="13" font-weight="700">Dataset + Target Column</text>
+  <text x="560" y="108" text-anchor="middle" fill="#64748B" font-size="10">n numeric features, optional date column, optional anomaly context</text>
+
+  <line x1="560" y1="118" x2="560" y2="142" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="560" y="138" text-anchor="middle" fill="#64748B" font-size="9">Parallel execution via ThreadPoolExecutor</text>
+
+  <!-- Fork lines -->
+  <line x1="170" y1="148" x2="950" y2="148" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="170" y1="148" x2="170" y2="165" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="560" y1="148" x2="560" y2="165" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="950" y1="148" x2="950" y2="165" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 1a: Bulk Spearman + Partial Correlation                -->
+  <!-- ============================================================ -->
+  <rect x="18" y="168" width="304" height="188" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+  <!-- Header -->
+  <rect x="18" y="168" width="304" height="38" rx="12" fill="#DBEAFE"/>
+  <rect x="18" y="192" width="304" height="14" fill="#DBEAFE"/>
+  <text x="170" y="188" text-anchor="middle" fill="#1E3A8A" font-size="11" font-weight="700">Layer 1a: Bulk Spearman + Partial Correlation</text>
+  <text x="170" y="216" text-anchor="middle" fill="#3B82F6" font-size="9">Single scipy matrix API call (100x faster than pair-loop)</text>
+
+  <text x="30" y="235" fill="#1D4ED8" font-size="10" font-weight="600">Spearman Matrix</text>
+  <text x="30" y="250" fill="#1E40AF" font-size="9">rho_matrix, p_matrix = spearmanr(X, axis=0)</text>
+  <text x="30" y="264" fill="#475569" font-size="9">rho[i, target] = rank correlation of feature_i with target</text>
+  <text x="30" y="278" fill="#475569" font-size="9">sample cap: 10,000 rows, C-level vectorized call</text>
+
+  <text x="30" y="298" fill="#1D4ED8" font-size="10" font-weight="600">Partial Correlation (confounders removed)</text>
+  <text x="30" y="313" fill="#1E40AF" font-size="9">Omega = Sigma^(-1)   (precision matrix inversion)</text>
+  <text x="30" y="327" fill="#1E40AF" font-size="9">rho_partial(i,j) = -Omega[i,j] / sqrt(Omega[i,i] * Omega[j,j])</text>
+  <text x="30" y="341" fill="#475569" font-size="9">reveals direct effects vs mediated paths through confounders</text>
+  <text x="30" y="354" fill="#94A3B8" font-size="8">clipped to top_k features to stay O(k^2)</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 1b: MI + Distance Correlation                          -->
+  <!-- ============================================================ -->
+  <rect x="334" y="168" width="304" height="188" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="334" y="168" width="304" height="38" rx="12" fill="#EDE9FE"/>
+  <rect x="334" y="192" width="304" height="14" fill="#EDE9FE"/>
+  <text x="486" y="188" text-anchor="middle" fill="#4C1D95" font-size="11" font-weight="700">Layer 1b: MI + Distance Correlation</text>
+  <text x="486" y="216" text-anchor="middle" fill="#7C3AED" font-size="9">Non-linear dependence detection (capped at 3,000 rows)</text>
+
+  <text x="346" y="235" fill="#6D28D9" font-size="10" font-weight="600">Mutual Information</text>
+  <text x="346" y="250" fill="#5B21B6" font-size="9">I(X;Y) = H(X) - H(X|Y)   (entropy difference)</text>
+  <text x="346" y="264" fill="#5B21B6" font-size="9">k-NN estimator via sklearn mutual_info_regression</text>
+  <text x="346" y="278" fill="#475569" font-size="9">detects non-monotonic dependence that Spearman misses</text>
+
+  <text x="346" y="298" fill="#6D28D9" font-size="10" font-weight="600">Distance Correlation (dCor)</text>
+  <text x="346" y="313" fill="#5B21B6" font-size="9">dCor(X,Y) = 0 if and only if X is independent of Y</text>
+  <text x="346" y="327" fill="#5B21B6" font-size="9">captures all forms of dependence (linear + non-linear)</text>
+  <text x="346" y="341" fill="#475569" font-size="9">dcor library, 2,000 sample cap, optional import</text>
+  <text x="346" y="355" fill="#94A3B8" font-size="8">falls back silently if dcor not installed</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 3: Causal Graph Discovery                              -->
+  <!-- ============================================================ -->
+  <rect x="650" y="168" width="452" height="188" rx="12" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/>
+  <rect x="650" y="168" width="452" height="38" rx="12" fill="#DCFCE7"/>
+  <rect x="650" y="192" width="452" height="14" fill="#DCFCE7"/>
+  <text x="876" y="188" text-anchor="middle" fill="#14532D" font-size="11" font-weight="700">Layer 3: Causal Graph Discovery</text>
+  <text x="876" y="216" text-anchor="middle" fill="#16A34A" font-size="9">PC Algorithm (n_cols at most 8) or Correlation DAG fallback</text>
+
+  <text x="662" y="235" fill="#15803D" font-size="10" font-weight="600">Simplified PC Algorithm</text>
+  <text x="662" y="250" fill="#166534" font-size="9">1. Start with complete undirected graph over top_k features</text>
+  <text x="662" y="264" fill="#166534" font-size="9">2. Remove edge (A,B) if conditional independence holds</text>
+  <text x="662" y="278" fill="#166534" font-size="9">3. Orient v-structures: A to C from B, where A-B is absent</text>
+  <text x="662" y="292" fill="#166534" font-size="9">4. Meek rule propagation for remaining skeleton edges</text>
+
+  <text x="662" y="312" fill="#15803D" font-size="10" font-weight="600">Correlation DAG Fallback</text>
+  <text x="662" y="327" fill="#166534" font-size="9">greedy topological sort by absolute Spearman |rho|</text>
+  <text x="662" y="341" fill="#166534" font-size="9">used when n_cols greater than 8 (PC becomes O(n^3))</text>
+  <text x="662" y="355" fill="#475569" font-size="9">graph stored as NetworkX DiGraph, serialized to nodes + edges JSON</text>
+
+  <!-- ============================================================ -->
+  <!-- Arrows: Layer 1a, 1b down to Layer 2                         -->
+  <!-- ============================================================ -->
+  <line x1="170" y1="356" x2="170" y2="390" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="486" y1="356" x2="486" y2="390" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Layer 3 arrow curves down to Layer 4 later -->
+
+  <!-- ============================================================ -->
+  <!-- LAYER 2: Temporal Analysis                                   -->
+  <!-- ============================================================ -->
+  <rect x="18" y="393" width="620" height="136" rx="12" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/>
+  <rect x="18" y="393" width="620" height="38" rx="12" fill="#FEF3C7"/>
+  <rect x="18" y="417" width="620" height="14" fill="#FEF3C7"/>
+  <text x="328" y="413" text-anchor="middle" fill="#92400E" font-size="11" font-weight="700">Layer 2: Temporal Analysis (requires date column + at least 30 rows)</text>
+  <text x="328" y="437" text-anchor="middle" fill="#D97706" font-size="9">Sequential after top_k feature selection; skipped automatically when conditions not met</text>
+
+  <!-- Left: Granger -->
+  <text x="30" y="458" fill="#B45309" font-size="10" font-weight="600">Granger Causality (top-2 features, max_lag=2)</text>
+  <text x="30" y="472" fill="#92400E" font-size="9">H0: feature does NOT Granger-cause target metric</text>
+  <text x="30" y="486" fill="#92400E" font-size="9">F-test on restricted vs unrestricted VAR; reject H0 if p below 0.05</text>
+  <text x="30" y="500" fill="#64748B" font-size="9">driver precedes target in time, temporal precedence evidence</text>
+  <text x="30" y="514" fill="#94A3B8" font-size="8">limited to top-2 features to keep runtime below 1 second</text>
+
+  <!-- Right: Cross-Correlation -->
+  <text x="340" y="458" fill="#B45309" font-size="10" font-weight="600">Lag Cross-Correlation</text>
+  <text x="340" y="472" fill="#92400E" font-size="9">xcorr(X,Y,k) = cov(Xt, Yt+k) / (sigma_X * sigma_Y)</text>
+  <text x="340" y="486" fill="#92400E" font-size="9">peak at lag k greater than 0 means driver leads target by k steps</text>
+  <text x="340" y="500" fill="#64748B" font-size="9">temporal_precedence = True if best lag is positive</text>
+  <text x="340" y="514" fill="#94A3B8" font-size="8">computed for top_k[:4] features; vectorized via pandas/numpy</text>
+
+  <!-- Connector from Layer 3 down and across to Layer 4 -->
+  <line x1="876" y1="356" x2="876" y2="548" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="328" y1="548" x2="876" y2="548" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="328" y1="529" x2="328" y2="548" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="328" y1="548" x2="328" y2="562" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 4: Graph Traversal + Composite Ranking                 -->
+  <!-- ============================================================ -->
+  <rect x="18" y="565" width="1084" height="126" rx="12" fill="#FDF4FF" stroke="#9333EA" stroke-width="2"/>
+  <rect x="18" y="565" width="1084" height="38" rx="12" fill="#F3E8FF"/>
+  <rect x="18" y="589" width="1084" height="14" fill="#F3E8FF"/>
+  <text x="560" y="585" text-anchor="middle" fill="#581C87" font-size="12" font-weight="700">Layer 4: Graph Traversal + Composite Ranking</text>
+  <text x="560" y="607" text-anchor="middle" fill="#9333EA" font-size="9">BFS from target node + PageRank centrality + anomaly boost + composite influence score</text>
+
+  <!-- BFS -->
+  <text x="30" y="628" fill="#7E22CE" font-size="10" font-weight="600">BFS from Target</text>
+  <text x="30" y="643" fill="#6B21A8" font-size="9">traverse upstream predecessors in causal DiGraph</text>
+  <text x="30" y="657" fill="#6B21A8" font-size="9">rank nodes by hop distance from target</text>
+  <text x="30" y="671" fill="#475569" font-size="8">root = direct predecessor; secondary = 2+ hops</text>
+
+  <!-- PageRank -->
+  <text x="300" y="628" fill="#7E22CE" font-size="10" font-weight="600">PageRank Centrality</text>
+  <text x="300" y="643" fill="#6B21A8" font-size="9">PR(i) = (1-d)/N + d * sum_j PR(j)/L(j)</text>
+  <text x="300" y="657" fill="#6B21A8" font-size="9">d = 0.85 damping, L(j) = out-degree of node j</text>
+  <text x="300" y="671" fill="#475569" font-size="8">high PageRank = structurally influential root cause</text>
+
+  <!-- Composite Score -->
+  <text x="580" y="628" fill="#7E22CE" font-size="10" font-weight="600">Composite Influence Score</text>
+  <text x="580" y="643" fill="#6B21A8" font-size="9">s = |rho_spearman| + |rho_partial| + MI + dCor</text>
+  <text x="580" y="657" fill="#6B21A8" font-size="9">+0.15 if column was flagged anomalous (cross-system boost)</text>
+  <text x="580" y="671" fill="#475569" font-size="8">normalized by PageRank; top_k results returned as root_causes[]</text>
+
+  <!-- ============================================================ -->
+  <!-- Output                                                        -->
+  <!-- ============================================================ -->
+  <line x1="560" y1="691" x2="560" y2="712" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="60" y="715" width="1000" height="68" rx="10" fill="#FFFFFF" stroke="#9333EA" stroke-width="2"/>
+  <text x="560" y="735" text-anchor="middle" fill="#581C87" font-size="11" font-weight="700">Response Structure</text>
+  <text x="560" y="751" text-anchor="middle" fill="#475569" font-size="9">root_causes[] + methods{ statistical, temporal, graph, ensemble } + charts[] (8 types) + narrative explanation</text>
+  <text x="560" y="765" text-anchor="middle" fill="#94A3B8" font-size="8">charts: causal graph, rank bar, metrics timeline, lag xcorr, Spearman vs partial, MI, correlation heatmap, dCor</text>
+  <text x="560" y="778" text-anchor="middle" fill="#94A3B8" font-size="8">each chart carries structured explanation: { why, what, how_to_read }</text>
+</svg>

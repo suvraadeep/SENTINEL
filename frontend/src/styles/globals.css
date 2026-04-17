@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #1E293B transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: #1E293B;
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: #0A0E1A;
+    color: #F1F5F9;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(59, 130, 246, 0.3);
+    color: #F1F5F9;
+  }
+}
+
+/* ── Components ───────────────────────────────────────────────────── */
+@layer components {
+
+  /* Cards */
+  .card {
+    @apply bg-sentinel-surface border border-sentinel-border rounded-xl;
+  }
+  .card-hover {
+    @apply card transition-all duration-200 hover:border-sentinel-blue/40 hover:bg-sentinel-card;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-sentinel-blue text-white font-medium text-sm
+           hover:bg-blue-500 active:scale-95
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-sentinel-card border border-sentinel-border text-sentinel-text font-medium text-sm
+           hover:bg-sentinel-hover hover:border-sentinel-blue/40
+           transition-all duration-150 disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
+           text-sentinel-muted text-sm
+           hover:text-sentinel-text hover:bg-sentinel-card
+           transition-all duration-150;
+  }
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-sentinel-red/10 border border-sentinel-red/30 text-sentinel-red text-sm
+           hover:bg-sentinel-red/20 transition-all duration-150;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full px-3 py-2.5 rounded-lg
+           bg-sentinel-card border border-sentinel-border
+           text-sentinel-text placeholder-sentinel-faint text-sm
+           focus:outline-none focus:ring-1 focus:ring-sentinel-blue/60 focus:border-sentinel-blue/60
+           transition-all duration-150;
+  }
+
+  /* Small input (DataLab) */
+  .input-xs {
+    @apply px-2 py-1 rounded-lg
+           bg-sentinel-surface border border-sentinel-border
+           text-sentinel-text placeholder-sentinel-faint text-xs
+           focus:outline-none focus:ring-1 focus:ring-sentinel-blue/40 focus:border-sentinel-blue/40
+           transition-all duration-150;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-blue   { @apply badge bg-sentinel-blue/10   text-sentinel-blue   border border-sentinel-blue/20; }
+  .badge-cyan   { @apply badge bg-sentinel-cyan/10   text-sentinel-cyan   border border-sentinel-cyan/20; }
+  .badge-green  { @apply badge bg-sentinel-green/10  text-sentinel-green  border border-sentinel-green/20; }
+  .badge-yellow { @apply badge bg-sentinel-yellow/10 text-sentinel-yellow border border-sentinel-yellow/20; }
+  .badge-red    { @apply badge bg-sentinel-red/10    text-sentinel-red    border border-sentinel-red/20; }
+  .badge-purple { @apply badge bg-sentinel-purple/10 text-sentinel-purple border border-sentinel-purple/20; }
+
+  /* Section label */
+  .section-label {
+    @apply text-xs font-semibold tracking-widest uppercase text-sentinel-faint;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-sentinel-border;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply h-1.5 rounded-full bg-sentinel-border overflow-hidden;
+  }
+  .progress-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+
+  /* SQL code block */
+  .sql-code {
+    @apply font-mono text-xs text-sentinel-cyan bg-black/40 rounded-lg
+           p-4 overflow-x-auto whitespace-pre;
+  }
+
+  /* Glow dot */
+  .glow-dot {
+    @apply w-2 h-2 rounded-full animate-pulse;
+  }
+
+  /* Tab */
+  .tab {
+    @apply px-4 py-2 text-sm font-medium text-sentinel-muted
+           border-b-2 border-transparent transition-all duration-150
+           hover:text-sentinel-text hover:border-sentinel-border cursor-pointer;
+  }
+  .tab-active {
+    @apply text-sentinel-blue border-sentinel-blue;
+  }
+
+  /* Memory card */
+  .memory-layer {
+    @apply flex items-center gap-3 p-3 rounded-lg bg-sentinel-card
+           border border-sentinel-border cursor-pointer
+           hover:border-sentinel-blue/30 transition-all duration-150;
+  }
+
+  /* Insight callout */
+  .insight-callout {
+    @apply inline-block px-2 py-0.5 rounded bg-sentinel-blue/10
+           text-sentinel-blue text-sm font-semibold border border-sentinel-blue/20;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply bg-gradient-to-r from-sentinel-card via-sentinel-hover to-sentinel-card
+           bg-[length:200%_100%] animate-shimmer rounded;
+  }
+
+  /* Operator card */
+  .operator-card {
+    @apply relative flex flex-col items-center gap-3 p-6 rounded-2xl
+           bg-sentinel-surface border-2 border-sentinel-border
+           cursor-pointer transition-all duration-200
+           hover:border-sentinel-blue/50 hover:bg-sentinel-card hover:shadow-glow-blue;
+  }
+  .operator-card-selected {
+    @apply border-sentinel-blue bg-sentinel-card shadow-glow-blue;
+  }
+}
+
+/* ── Utilities ────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient-blue {
+    @apply bg-gradient-to-r from-sentinel-blue to-sentinel-cyan bg-clip-text text-transparent;
+  }
+  .text-gradient-purple {
+    @apply bg-gradient-to-r from-sentinel-purple to-sentinel-pink bg-clip-text text-transparent;
+  }
+  .border-gradient-blue {
+    border-image: linear-gradient(to right, #3B82F6, #06B6D4) 1;
+  }
+  .bg-grid {
+    background-image: var(--tw-gradient-image, none),
+      linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+    background-size: auto, 40px 40px, 40px 40px;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ── Plotly overrides ─────────────────────────────────────────────── */
+.plotly-chart iframe {
+  border: none;
+  background: transparent;
+}
+
+/* ── Animations ───────────────────────────────────────────────────── */
+@keyframes typing {
+  0%, 60%, 100% { opacity: 1; }
+  30%            { opacity: 0; }
+}
+.typing-dot {
+  animation: typing 1.4s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }

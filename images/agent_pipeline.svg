@@ -1,0 +1,175 @@
+<svg viewBox="0 0 1200 580" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#64748B"/>
+    </marker>
+    <marker id="arr-b" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#2563EB"/>
+    </marker>
+    <marker id="arr-g" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#16A34A"/>
+    </marker>
+    <marker id="arr-r" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#DC2626"/>
+    </marker>
+    <marker id="arr-a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#D97706"/>
+    </marker>
+    <marker id="arr-p" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#7C3AED"/>
+    </marker>
+    <marker id="arr-c" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#0891B2"/>
+    </marker>
+  </defs>
+
+  <!-- Light background -->
+  <rect width="1200" height="580" fill="#F8FAFC" rx="14"/>
+
+  <!-- Title -->
+  <text x="600" y="36" text-anchor="middle" fill="#0F172A" font-size="20" font-weight="700">SENTINEL LangGraph Agent Pipeline</text>
+  <text x="600" y="57" text-anchor="middle" fill="#64748B" font-size="12">Directed cyclic graph with conditional routing. All agents share a single exec() namespace.</text>
+
+  <!-- ======================================================== -->
+  <!-- MAIN HORIZONTAL PIPELINE ROW (y=160)                     -->
+  <!-- ======================================================== -->
+
+  <!-- START node -->
+  <circle cx="60" cy="165" r="28" fill="#DBEAFE" stroke="#2563EB" stroke-width="2.5"/>
+  <text x="60" y="160" text-anchor="middle" fill="#1E3A8A" font-size="9" font-weight="700">START</text>
+  <text x="60" y="174" text-anchor="middle" fill="#3B82F6" font-size="9">query</text>
+
+  <line x1="88" y1="165" x2="112" y2="165" stroke="#2563EB" stroke-width="2" marker-end="url(#arr-b)"/>
+
+  <!-- Intent Classifier -->
+  <rect x="114" y="138" width="130" height="54" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="179" y="158" text-anchor="middle" fill="#4C1D95" font-size="11" font-weight="700">Intent</text>
+  <text x="179" y="173" text-anchor="middle" fill="#4C1D95" font-size="11" font-weight="700">Classifier</text>
+  <text x="179" y="186" text-anchor="middle" fill="#7C3AED" font-size="8">L2 + L3 + L4 memory</text>
+
+  <line x1="244" y1="165" x2="272" y2="165" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Route diamond -->
+  <polygon points="308,140 352,165 308,190 264,165" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/>
+  <text x="308" y="161" text-anchor="middle" fill="#92400E" font-size="9" font-weight="700">Route</text>
+  <text x="308" y="175" text-anchor="middle" fill="#92400E" font-size="9">Intent</text>
+
+  <!-- SQL path label -->
+  <text x="378" y="155" text-anchor="middle" fill="#2563EB" font-size="8" font-weight="600">sql_query</text>
+  <line x1="352" y1="165" x2="400" y2="165" stroke="#2563EB" stroke-width="2" marker-end="url(#arr-b)"/>
+
+  <!-- Schema Linker -->
+  <rect x="402" y="138" width="110" height="54" rx="9" fill="#E0F2FE" stroke="#0891B2" stroke-width="1.5"/>
+  <text x="457" y="158" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="700">Schema</text>
+  <text x="457" y="173" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="700">Linker</text>
+  <text x="457" y="185" text-anchor="middle" fill="#0369A1" font-size="8">table + column linking</text>
+
+  <line x1="512" y1="165" x2="534" y2="165" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Query Decomposer -->
+  <rect x="536" y="138" width="110" height="54" rx="9" fill="#E0F2FE" stroke="#0891B2" stroke-width="1.5"/>
+  <text x="591" y="158" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="700">Query</text>
+  <text x="591" y="173" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="700">Decomposer</text>
+  <text x="591" y="185" text-anchor="middle" fill="#0369A1" font-size="8">subproblems</text>
+
+  <line x1="646" y1="165" x2="668" y2="165" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- SQL Generator -->
+  <rect x="670" y="130" width="110" height="70" rx="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="725" y="150" text-anchor="middle" fill="#1E3A8A" font-size="10" font-weight="700">SQL Gen</text>
+  <text x="725" y="165" text-anchor="middle" fill="#1E40AF" font-size="10">(CoT + L4)</text>
+  <text x="725" y="179" text-anchor="middle" fill="#3B82F6" font-size="8">top-3 candidates</text>
+  <text x="725" y="192" text-anchor="middle" fill="#3B82F6" font-size="8">few-shot shots</text>
+
+  <line x1="780" y1="165" x2="802" y2="165" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- SQL Validator -->
+  <rect x="804" y="130" width="110" height="70" rx="9" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="859" y="150" text-anchor="middle" fill="#4C1D95" font-size="10" font-weight="700">SQL</text>
+  <text x="859" y="165" text-anchor="middle" fill="#4C1D95" font-size="10">Validator</text>
+  <text x="859" y="179" text-anchor="middle" fill="#7C3AED" font-size="8">exec + retry</text>
+  <text x="859" y="192" text-anchor="middle" fill="#7C3AED" font-size="8">at most 5 attempts</text>
+
+  <!-- retry loop arrow (loops back) -->
+  <path d="M 859,200 Q 859,220 725,220 Q 594,220 594,200" fill="none" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <polygon points="594,200 586,194 602,194" fill="#DC2626"/>
+  <text x="727" y="234" text-anchor="middle" fill="#DC2626" font-size="8">error: guided correction loop</text>
+
+  <line x1="914" y1="165" x2="936" y2="165" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Response Writer -->
+  <rect x="938" y="130" width="110" height="70" rx="9" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+  <text x="993" y="150" text-anchor="middle" fill="#14532D" font-size="10" font-weight="700">Response</text>
+  <text x="993" y="165" text-anchor="middle" fill="#166534" font-size="10">Writer</text>
+  <text x="993" y="179" text-anchor="middle" fill="#16A34A" font-size="8">chart render</text>
+  <text x="993" y="192" text-anchor="middle" fill="#16A34A" font-size="8">chart analysis</text>
+
+  <line x1="1048" y1="165" x2="1072" y2="165" stroke="#16A34A" stroke-width="2" marker-end="url(#arr-g)"/>
+
+  <!-- END node -->
+  <circle cx="1102" cy="165" r="28" fill="#DCFCE7" stroke="#16A34A" stroke-width="2.5"/>
+  <text x="1102" y="160" text-anchor="middle" fill="#14532D" font-size="9" font-weight="700">END</text>
+  <text x="1102" y="174" text-anchor="middle" fill="#16A34A" font-size="9">response</text>
+
+  <!-- ======================================================== -->
+  <!-- SPECIALISED AGENT BRANCHES (below main line)             -->
+  <!-- ======================================================== -->
+
+  <!-- RCA branch -->
+  <line x1="308" y1="190" x2="308" y2="248" stroke="#DC2626" stroke-width="1.5"/>
+  <line x1="308" y1="248" x2="228" y2="248" stroke="#DC2626" stroke-width="1.5" marker-end="url(#arr-r)"/>
+  <text x="280" y="240" text-anchor="middle" fill="#DC2626" font-size="8" font-weight="600">rca</text>
+  <rect x="128" y="236" width="100" height="50" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="178" y="257" text-anchor="middle" fill="#991B1B" font-size="10" font-weight="700">RCA</text>
+  <text x="178" y="272" text-anchor="middle" fill="#991B1B" font-size="10">Agent</text>
+  <text x="178" y="282" text-anchor="middle" fill="#DC2626" font-size="7">CausalRCAEngine</text>
+
+  <!-- Anomaly branch -->
+  <line x1="308" y1="190" x2="308" y2="328" stroke="#D97706" stroke-width="1.5"/>
+  <line x1="308" y1="328" x2="228" y2="328" stroke="#D97706" stroke-width="1.5" marker-end="url(#arr-a)"/>
+  <text x="280" y="320" text-anchor="middle" fill="#D97706" font-size="8" font-weight="600">anomaly</text>
+  <rect x="128" y="316" width="100" height="50" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+  <text x="178" y="337" text-anchor="middle" fill="#92400E" font-size="10" font-weight="700">Anomaly</text>
+  <text x="178" y="352" text-anchor="middle" fill="#92400E" font-size="10">Agent</text>
+  <text x="178" y="362" text-anchor="middle" fill="#D97706" font-size="7">AnomalyEngine</text>
+
+  <!-- Math branch -->
+  <line x1="308" y1="190" x2="308" y2="408" stroke="#16A34A" stroke-width="1.5"/>
+  <line x1="308" y1="408" x2="228" y2="408" stroke="#16A34A" stroke-width="1.5" marker-end="url(#arr-g)"/>
+  <text x="280" y="400" text-anchor="middle" fill="#16A34A" font-size="8" font-weight="600">math</text>
+  <rect x="128" y="396" width="100" height="50" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5"/>
+  <text x="178" y="417" text-anchor="middle" fill="#14532D" font-size="10" font-weight="700">Math</text>
+  <text x="178" y="432" text-anchor="middle" fill="#14532D" font-size="10">Agent</text>
+  <text x="178" y="442" text-anchor="middle" fill="#16A34A" font-size="7">CMGR / CLV / tests</text>
+
+  <!-- Forecast branch (dashed to far right lower) -->
+  <line x1="352" y1="165" x2="820" y2="460" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <rect x="776" y="448" width="108" height="50" rx="8" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="830" y="469" text-anchor="middle" fill="#4C1D95" font-size="10" font-weight="700">Forecast</text>
+  <text x="830" y="484" text-anchor="middle" fill="#4C1D95" font-size="10">Agent</text>
+  <text x="830" y="494" text-anchor="middle" fill="#7C3AED" font-size="7">Prophet + Holt-Winters</text>
+  <text x="570" y="455" text-anchor="middle" fill="#7C3AED" font-size="8">forecast</text>
+
+  <!-- Prediction branch (dashed far right) -->
+  <line x1="352" y1="165" x2="960" y2="430" stroke="#0891B2" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <rect x="916" y="418" width="108" height="50" rx="8" fill="#E0F2FE" stroke="#0891B2" stroke-width="1.5"/>
+  <text x="970" y="439" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="700">Prediction</text>
+  <text x="970" y="454" text-anchor="middle" fill="#0C4A6E" font-size="10">Agent</text>
+  <text x="970" y="464" text-anchor="middle" fill="#0891B2" font-size="7">RF / XGB / Ridge</text>
+  <text x="800" y="390" text-anchor="middle" fill="#0891B2" font-size="8">prediction</text>
+
+  <!-- Convergence note -->
+  <line x1="228" y1="261" x2="1102" y2="261" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 2"/>
+  <line x1="1102" y1="193" x2="1102" y2="261" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="660" y="275" text-anchor="middle" fill="#94A3B8" font-size="8">all specialised agents resolve to END via final_response</text>
+
+  <!-- Bottom annotations -->
+  <rect x="16" y="516" width="520" height="30" rx="7" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="276" y="535" text-anchor="middle" fill="#64748B" font-size="9">SentinelState: 26 fields including query, intent, sql_query, sql_result_json, rca_result, forecast_result, anomaly_result, final_response</text>
+
+  <rect x="550" y="516" width="320" height="30" rx="7" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="710" y="535" text-anchor="middle" fill="#64748B" font-size="9">L2 + L4 retrieved in intent_classifier, injected into context</text>
+
+  <rect x="884" y="516" width="300" height="30" rx="7" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="1034" y="535" text-anchor="middle" fill="#64748B" font-size="9">exec() namespace: 20 agent files, shared Python scope</text>
+</svg>

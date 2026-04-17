@@ -1,0 +1,403 @@
+<svg viewBox="0 0 1400 920" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#64748B"/>
+    </marker>
+    <marker id="arr-b" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#2563EB"/>
+    </marker>
+    <marker id="arr-p" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#7C3AED"/>
+    </marker>
+    <marker id="arr-g" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#16A34A"/>
+    </marker>
+  </defs>
+
+  <!-- Light background -->
+  <rect width="1400" height="920" fill="#F1F5F9" rx="16"/>
+  <rect x="8" y="8" width="1384" height="904" fill="#F8FAFC" rx="12"/>
+
+  <!-- Title -->
+  <text x="700" y="38" text-anchor="middle" fill="#0F172A" font-size="22" font-weight="700" letter-spacing="0.5">SENTINEL: Complete System Architecture</text>
+  <text x="700" y="59" text-anchor="middle" fill="#64748B" font-size="13">Multi-agent AI analytics platform: LangGraph + DuckDB + ChromaDB + React 18</text>
+
+  <!-- ============================================================ -->
+  <!-- COLUMN 1: FRONTEND  x=16..243                               -->
+  <!-- ============================================================ -->
+  <rect x="16" y="72" width="227" height="828" rx="12" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="129" y="96" text-anchor="middle" fill="#1E3A8A" font-size="13" font-weight="700">Frontend</text>
+  <text x="129" y="112" text-anchor="middle" fill="#2563EB" font-size="10">React 18 + Vite + Tailwind CSS</text>
+
+  <!-- User -->
+  <circle cx="129" cy="150" r="22" fill="#DBEAFE" stroke="#2563EB" stroke-width="2"/>
+  <text x="129" y="146" text-anchor="middle" fill="#1D4ED8" font-size="17">&#x1F464;</text>
+  <text x="129" y="163" text-anchor="middle" fill="#3B82F6" font-size="9">User (Browser)</text>
+
+  <!-- Pages -->
+  <text x="129" y="196" text-anchor="middle" fill="#475569" font-size="9" font-weight="700">Pages</text>
+  <rect x="26" y="200" width="206" height="26" rx="5" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1"/>
+  <text x="129" y="217" text-anchor="middle" fill="#1E3A8A" font-size="10" font-weight="600">LoginPage</text>
+
+  <rect x="26" y="230" width="206" height="26" rx="5" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1"/>
+  <text x="129" y="247" text-anchor="middle" fill="#4C1D95" font-size="10" font-weight="600">DashboardPage (Chat)</text>
+
+  <rect x="26" y="260" width="206" height="26" rx="5" fill="#E0F2FE" stroke="#0891B2" stroke-width="1"/>
+  <text x="129" y="277" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="600">AnalyticsPage (SQL)</text>
+
+  <rect x="26" y="290" width="206" height="26" rx="5" fill="#FEE2E2" stroke="#DC2626" stroke-width="1"/>
+  <text x="129" y="307" text-anchor="middle" fill="#991B1B" font-size="10" font-weight="600">AnomalyDashboard</text>
+
+  <rect x="26" y="320" width="206" height="26" rx="5" fill="#FEF3C7" stroke="#D97706" stroke-width="1"/>
+  <text x="129" y="337" text-anchor="middle" fill="#92400E" font-size="10" font-weight="600">RCADashboard</text>
+
+  <rect x="26" y="350" width="206" height="26" rx="5" fill="#DCFCE7" stroke="#16A34A" stroke-width="1"/>
+  <text x="129" y="367" text-anchor="middle" fill="#14532D" font-size="10" font-weight="600">DataLab (SQL + Transform)</text>
+
+  <!-- Key components -->
+  <text x="129" y="396" text-anchor="middle" fill="#475569" font-size="9" font-weight="700">Key Components</text>
+
+  <rect x="26" y="400" width="206" height="22" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="129" y="415" text-anchor="middle" fill="#475569" font-size="9">ChatWindow + QueryInput</text>
+
+  <rect x="26" y="426" width="206" height="22" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="129" y="441" text-anchor="middle" fill="#475569" font-size="9">MarkdownMessage (KaTeX math)</text>
+
+  <rect x="26" y="452" width="206" height="22" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="129" y="467" text-anchor="middle" fill="#475569" font-size="9">ChartFrame (Plotly HTML iframe)</text>
+
+  <rect x="26" y="478" width="206" height="22" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="129" y="493" text-anchor="middle" fill="#475569" font-size="9">MemoryBar + MemoryModal</text>
+
+  <rect x="26" y="504" width="206" height="22" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="129" y="519" text-anchor="middle" fill="#475569" font-size="9">ModelSelector + OperatorGrid</text>
+
+  <rect x="26" y="530" width="206" height="22" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="129" y="545" text-anchor="middle" fill="#475569" font-size="9">AnomalyBlock + RcaBlock + ForecastBlock</text>
+
+  <!-- API Client -->
+  <rect x="26" y="562" width="206" height="68" rx="8" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="129" y="578" text-anchor="middle" fill="#1E3A8A" font-size="10" font-weight="700">API Client (Axios)</text>
+  <text x="129" y="593" text-anchor="middle" fill="#475569" font-size="9">timeout: 300 seconds</text>
+  <text x="129" y="607" text-anchor="middle" fill="#475569" font-size="9">runQuery | uploadFile | detectAnomalies</text>
+  <text x="129" y="621" text-anchor="middle" fill="#475569" font-size="9">runRCA | anomalyChat | rcaChat</text>
+
+  <!-- AppContext -->
+  <rect x="26" y="640" width="206" height="44" rx="8" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="129" y="658" text-anchor="middle" fill="#4C1D95" font-size="10" font-weight="700">AppContext (Global State)</text>
+  <text x="129" y="673" text-anchor="middle" fill="#64748B" font-size="9">queryHistory, currentDataset, provider</text>
+
+  <!-- LLM Providers list -->
+  <text x="129" y="702" text-anchor="middle" fill="#475569" font-size="9" font-weight="700">LLM Providers (configured in UI)</text>
+  <rect x="26" y="706" width="206" height="82" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="38" y="724" fill="#1E293B" font-size="9">&#x25CF; OpenAI (GPT-4o, GPT-5.2)</text>
+  <text x="38" y="739" fill="#1E293B" font-size="9">&#x25CF; Anthropic (Sonnet, Opus, Haiku)</text>
+  <text x="38" y="754" fill="#1E293B" font-size="9">&#x25CF; Google (Gemini 3.1 Pro)</text>
+  <text x="38" y="769" fill="#1E293B" font-size="9">&#x25CF; NVIDIA NIM | Groq | HuggingFace</text>
+
+  <!-- ============================================================ -->
+  <!-- COLUMN 2: FASTAPI  x=255..481                               -->
+  <!-- ============================================================ -->
+  <rect x="255" y="72" width="226" height="828" rx="12" fill="#E0F2FE" stroke="#7DD3FC" stroke-width="1.5"/>
+  <text x="368" y="96" text-anchor="middle" fill="#0C4A6E" font-size="13" font-weight="700">FastAPI Backend</text>
+  <text x="368" y="112" text-anchor="middle" fill="#0891B2" font-size="10">uvicorn + CORS + SPA routing</text>
+
+  <!-- REST Endpoints -->
+  <text x="368" y="136" text-anchor="middle" fill="#475569" font-size="9" font-weight="700">REST Endpoints</text>
+
+  <rect x="265" y="140" width="206" height="54" rx="7" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="368" y="156" text-anchor="middle" fill="#4C1D95" font-size="10" font-weight="600">POST /api/provider/configure</text>
+  <text x="368" y="170" text-anchor="middle" fill="#64748B" font-size="8">validate key, init namespace, reconfigure LLM</text>
+  <text x="368" y="184" text-anchor="middle" fill="#94A3B8" font-size="8">GET /api/provider/models | catalogue</text>
+
+  <rect x="265" y="200" width="206" height="54" rx="7" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="368" y="216" text-anchor="middle" fill="#1E3A8A" font-size="10" font-weight="600">POST /api/query</text>
+  <text x="368" y="230" text-anchor="middle" fill="#64748B" font-size="8">call_ask() to LangGraph to charts + insights</text>
+  <text x="368" y="244" text-anchor="middle" fill="#94A3B8" font-size="8">returns: sql, charts[], rca/anomaly/forecast</text>
+
+  <rect x="265" y="260" width="206" height="54" rx="7" fill="#FFFFFF" stroke="#0891B2" stroke-width="1.5"/>
+  <text x="368" y="276" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="600">POST /api/upload</text>
+  <text x="368" y="290" text-anchor="middle" fill="#64748B" font-size="8">ingest file, DuckDB, update namespace</text>
+  <text x="368" y="304" text-anchor="middle" fill="#94A3B8" font-size="8">detect domain, seed L4 patterns</text>
+
+  <rect x="265" y="320" width="206" height="54" rx="7" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="368" y="336" text-anchor="middle" fill="#991B1B" font-size="10" font-weight="600">POST /api/anomaly/detect</text>
+  <text x="368" y="350" text-anchor="middle" fill="#64748B" font-size="8">AnomalyEngine: 4-layer detection</text>
+  <text x="368" y="364" text-anchor="middle" fill="#94A3B8" font-size="8">POST /api/anomaly/chat (LangGraph ReAct)</text>
+
+  <rect x="265" y="380" width="206" height="54" rx="7" fill="#FFFFFF" stroke="#D97706" stroke-width="1.5"/>
+  <text x="368" y="396" text-anchor="middle" fill="#92400E" font-size="10" font-weight="600">POST /api/rca/analyze</text>
+  <text x="368" y="410" text-anchor="middle" fill="#64748B" font-size="8">CausalRCAEngine: 4-layer causal analysis</text>
+  <text x="368" y="424" text-anchor="middle" fill="#94A3B8" font-size="8">POST /api/rca/chat (LangGraph ReAct)</text>
+
+  <rect x="265" y="440" width="206" height="44" rx="7" fill="#FFFFFF" stroke="#16A34A" stroke-width="1.5"/>
+  <text x="368" y="457" text-anchor="middle" fill="#14532D" font-size="10" font-weight="600">DataLab API</text>
+  <text x="368" y="472" text-anchor="middle" fill="#64748B" font-size="8">preview + schema + sql + transform + autoplot</text>
+
+  <rect x="265" y="490" width="206" height="30" rx="7" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1"/>
+  <text x="368" y="509" text-anchor="middle" fill="#475569" font-size="9" font-weight="600">GET /api/memory/{layer}</text>
+
+  <!-- Request Flow -->
+  <rect x="265" y="528" width="206" height="96" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="368" y="544" text-anchor="middle" fill="#334155" font-size="9" font-weight="700">Request Flow (POST /api/query)</text>
+  <text x="273" y="560" fill="#475569" font-size="9">1. Receive { query, dataset? }</text>
+  <text x="273" y="574" fill="#475569" font-size="9">2. call_ask() starts LangGraph graph</text>
+  <text x="273" y="588" fill="#475569" font-size="9">3. Extract Plotly code via exec()</text>
+  <text x="273" y="602" fill="#475569" font-size="9">4. Capture HTML figures in namespace</text>
+  <text x="273" y="616" fill="#475569" font-size="9">5. Return QueryResponse (200ms to 30s)</text>
+
+  <!-- Agentic Chat -->
+  <rect x="265" y="632" width="206" height="98" rx="8" fill="#FDF4FF" stroke="#C084FC" stroke-width="1"/>
+  <text x="368" y="648" text-anchor="middle" fill="#581C87" font-size="9" font-weight="700">Agentic Chat (LangGraph ReAct)</text>
+  <text x="273" y="664" fill="#475569" font-size="9">Tools: run_sql | compute_stat</text>
+  <text x="273" y="678" fill="#475569" font-size="9">explain_anomaly | generate_chart</text>
+  <text x="273" y="692" fill="#475569" font-size="9">compare_distributions | traverse_feature</text>
+  <text x="273" y="706" fill="#475569" font-size="9">explain_cause | compare_periods</text>
+  <text x="273" y="720" fill="#64748B" font-size="8">Max 4 iterations, strict Markdown output</text>
+
+  <!-- Namespace Engine -->
+  <rect x="265" y="738" width="206" height="88" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="368" y="754" text-anchor="middle" fill="#334155" font-size="9" font-weight="700">Namespace Engine (core)</text>
+  <text x="273" y="770" fill="#475569" font-size="9">exec() 20 agent files in dep. order</text>
+  <text x="273" y="784" fill="#475569" font-size="9">source-patch: paths, theme, LLM</text>
+  <text x="273" y="798" fill="#475569" font-size="9">wraps rca/anomaly agents</text>
+  <text x="273" y="812" fill="#475569" font-size="9">update_data(): swap DuckDB connection</text>
+
+  <!-- ============================================================ -->
+  <!-- COLUMN 3: AGENT SYSTEM  x=493..782                          -->
+  <!-- ============================================================ -->
+  <rect x="493" y="72" width="289" height="828" rx="12" fill="#F5F3FF" stroke="#C4B5FD" stroke-width="1.5"/>
+  <text x="637" y="96" text-anchor="middle" fill="#4C1D95" font-size="13" font-weight="700">LangGraph Agent System</text>
+  <text x="637" y="112" text-anchor="middle" fill="#7C3AED" font-size="10">exec()-shared namespace, 20 agent files</text>
+
+  <!-- Intent Classifier -->
+  <rect x="503" y="124" width="269" height="56" rx="9" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="637" y="142" text-anchor="middle" fill="#4C1D95" font-size="11" font-weight="700">1. Intent Classifier</text>
+  <text x="637" y="157" text-anchor="middle" fill="#475569" font-size="9">3-tier: keyword then LLM classify then memory load</text>
+  <text x="637" y="170" text-anchor="middle" fill="#7C3AED" font-size="8">sql_query | rca | forecast | anomaly | math | prediction</text>
+
+  <line x1="637" y1="180" x2="637" y2="194" stroke="#7C3AED" stroke-width="1.5" marker-end="url(#arr-p)"/>
+
+  <!-- SQL Pipeline -->
+  <rect x="503" y="196" width="269" height="144" rx="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="637" y="214" text-anchor="middle" fill="#1E3A8A" font-size="11" font-weight="700">SQL Pipeline (SoT)</text>
+  <text x="511" y="232" fill="#1D4ED8" font-size="9">1  Schema Linker: table + column linking</text>
+  <text x="511" y="247" fill="#1D4ED8" font-size="9">2  Query Decomposer: split subproblems</text>
+  <text x="511" y="262" fill="#1D4ED8" font-size="9">3  SQL Generator: CoT + L4 few-shot</text>
+  <text x="511" y="277" fill="#3B82F6" font-size="9">     top-3 candidate SQL queries</text>
+  <text x="511" y="292" fill="#1D4ED8" font-size="9">4  SQL Validator: exec + guided fix</text>
+  <text x="511" y="307" fill="#3B82F6" font-size="9">     error taxonomy, at most 5 retries</text>
+  <text x="511" y="322" fill="#1D4ED8" font-size="9">5  Render + analyze charts (deep LLM)</text>
+  <text x="511" y="337" fill="#1D4ED8" font-size="9">6  Response Writer: narrative synthesis</text>
+
+  <line x1="637" y1="340" x2="637" y2="354" stroke="#2563EB" stroke-width="1.5" marker-end="url(#arr-b)"/>
+
+  <!-- Specialised agents 2x3 grid -->
+  <rect x="503" y="356" width="130" height="48" rx="8" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="568" y="374" text-anchor="middle" fill="#991B1B" font-size="10" font-weight="600">RCA Agent</text>
+  <text x="568" y="389" text-anchor="middle" fill="#DC2626" font-size="8">Granger + Spearman + PC</text>
+
+  <rect x="643" y="356" width="129" height="48" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="707" y="374" text-anchor="middle" fill="#92400E" font-size="10" font-weight="600">Anomaly Agent</text>
+  <text x="707" y="389" text-anchor="middle" fill="#D97706" font-size="8">Z + IQR + IsoForest + CUSUM</text>
+
+  <rect x="503" y="412" width="130" height="48" rx="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+  <text x="568" y="430" text-anchor="middle" fill="#14532D" font-size="10" font-weight="600">Forecast Agent</text>
+  <text x="568" y="445" text-anchor="middle" fill="#16A34A" font-size="8">Prophet + Holt-Winters</text>
+
+  <rect x="643" y="412" width="129" height="48" rx="8" fill="#E0F2FE" stroke="#0891B2" stroke-width="1.5"/>
+  <text x="707" y="430" text-anchor="middle" fill="#0C4A6E" font-size="10" font-weight="600">Math Agent</text>
+  <text x="707" y="445" text-anchor="middle" fill="#0891B2" font-size="8">CMGR / CLV / stat tests</text>
+
+  <rect x="503" y="468" width="130" height="48" rx="8" fill="#FDF4FF" stroke="#9333EA" stroke-width="1.5"/>
+  <text x="568" y="486" text-anchor="middle" fill="#581C87" font-size="10" font-weight="600">Prediction Agent</text>
+  <text x="568" y="501" text-anchor="middle" fill="#7C3AED" font-size="8">RF / XGB / RidgeCV</text>
+
+  <rect x="643" y="468" width="129" height="48" rx="8" fill="#F1F5F9" stroke="#64748B" stroke-width="1.5"/>
+  <text x="707" y="486" text-anchor="middle" fill="#334155" font-size="10" font-weight="600">Memory Curator</text>
+  <text x="707" y="501" text-anchor="middle" fill="#475569" font-size="8">L2 scoring + pruning</text>
+
+  <!-- Statistical Methods -->
+  <rect x="503" y="526" width="269" height="192" rx="9" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="637" y="544" text-anchor="middle" fill="#334155" font-size="10" font-weight="700">Statistical Methods</text>
+  <text x="511" y="560" fill="#475569" font-size="8">Rolling Z-score:  z = (x - mu_w) / sigma_w,  flag if |z| above theta</text>
+  <text x="511" y="574" fill="#475569" font-size="8">IQR:  outlier if x outside [Q1 - 1.5*IQR,  Q3 + 1.5*IQR]</text>
+  <text x="511" y="588" fill="#475569" font-size="8">CUSUM:  S_pos = max(0, S_pos + x_i - mu - k)</text>
+  <text x="511" y="602" fill="#475569" font-size="8">KS test:  sup | F1(x) - F2(x) |</text>
+  <text x="511" y="616" fill="#475569" font-size="8">IsolationForest:  score = 2^(-E[h(x)] / c(n))</text>
+  <text x="511" y="630" fill="#475569" font-size="8">PCA recon error:  ||x - P^T * P * x||^2</text>
+  <text x="511" y="644" fill="#475569" font-size="8">Spearman:  rho = 1 - 6*sum(d^2) / (n*(n^2 - 1))</text>
+  <text x="511" y="658" fill="#475569" font-size="8">Partial corr:  -Omega[i,j] / sqrt(Omega[i,i] * Omega[j,j])</text>
+  <text x="511" y="672" fill="#475569" font-size="8">Mutual info:  I(X;Y) = H(X) - H(X|Y)</text>
+  <text x="511" y="686" fill="#475569" font-size="8">Granger:  F-test on VAR residuals, reject H0 if p below 0.05</text>
+  <text x="511" y="700" fill="#475569" font-size="8">CMGR:  (End / Start)^(1/months) - 1</text>
+  <text x="511" y="714" fill="#475569" font-size="8">CLV:  sum of (revenue - cost) over customer lifetime</text>
+
+  <!-- Domain Detection -->
+  <rect x="503" y="728" width="269" height="80" rx="9" fill="#FEF9C3" stroke="#D97706" stroke-width="1"/>
+  <text x="637" y="746" text-anchor="middle" fill="#92400E" font-size="10" font-weight="700">Domain Detection (6 domains)</text>
+  <text x="511" y="762" fill="#475569" font-size="8">score = sum(signal_keywords_found) + 3 * table_name_hints</text>
+  <text x="511" y="776" fill="#475569" font-size="8">domains: ecommerce | real_estate | financial | hr | healthcare | saas</text>
+  <text x="511" y="790" fill="#475569" font-size="8">detected if max_score at least 3, otherwise defaults to "generic"</text>
+
+  <!-- ============================================================ -->
+  <!-- COLUMN 4: STORAGE  x=794..1053                              -->
+  <!-- ============================================================ -->
+  <rect x="794" y="72" width="259" height="828" rx="12" fill="#F0FDF4" stroke="#86EFAC" stroke-width="1.5"/>
+  <text x="923" y="96" text-anchor="middle" fill="#14532D" font-size="13" font-weight="700">Storage Layer</text>
+  <text x="923" y="112" text-anchor="middle" fill="#16A34A" font-size="10">DuckDB + ChromaDB + NetworkX</text>
+
+  <!-- DuckDB -->
+  <rect x="804" y="124" width="239" height="148" rx="10" fill="#FFFFFF" stroke="#0891B2" stroke-width="2"/>
+  <text x="923" y="143" text-anchor="middle" fill="#0C4A6E" font-size="12" font-weight="700">DuckDB</text>
+  <text x="923" y="158" text-anchor="middle" fill="#0369A1" font-size="9">In-process analytical SQL engine</text>
+  <text x="812" y="176" fill="#334155" font-size="9" font-weight="600">Databases:</text>
+  <text x="812" y="191" fill="#475569" font-size="9">sentinel_ecom.duckdb (default)</text>
+  <text x="812" y="205" fill="#475569" font-size="9">uploads/{dataset}.duckdb (user files)</text>
+  <text x="812" y="219" fill="#475569" font-size="9">Modified views (filtered dataset copies)</text>
+  <text x="812" y="236" fill="#334155" font-size="9" font-weight="600">Operations:</text>
+  <text x="812" y="251" fill="#475569" font-size="9">run_sql(), run_sql_approx() (95% CI AQP)</text>
+  <text x="812" y="265" fill="#475569" font-size="9">SHOW TABLES, DESCRIBE table</text>
+
+  <!-- ChromaDB -->
+  <rect x="804" y="284" width="239" height="168" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+  <text x="923" y="303" text-anchor="middle" fill="#4C1D95" font-size="12" font-weight="700">ChromaDB</text>
+  <text x="923" y="318" text-anchor="middle" fill="#6D28D9" font-size="9">Persistent vector store</text>
+  <text x="812" y="336" fill="#334155" font-size="9" font-weight="600">Collections:</text>
+  <text x="812" y="351" fill="#475569" font-size="9">l2_episodic: past query episodes</text>
+  <text x="812" y="365" fill="#64748B" font-size="8">  tagged: dataset_type, sql, score</text>
+  <text x="812" y="379" fill="#475569" font-size="9">l4_procedural: SQL patterns</text>
+  <text x="812" y="393" fill="#64748B" font-size="8">  domain-scoped, real column names</text>
+  <text x="812" y="410" fill="#334155" font-size="9" font-weight="600">Embedding model:</text>
+  <text x="812" y="425" fill="#475569" font-size="9">BAAI/bge-large-en-v1.5 (1024-dim)</text>
+  <text x="812" y="439" fill="#475569" font-size="9">cosine similarity, normalize=True</text>
+  <text x="812" y="453" fill="#64748B" font-size="8">top MTEB retrieval benchmark, local</text>
+
+  <!-- NetworkX -->
+  <rect x="804" y="464" width="239" height="128" rx="10" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+  <text x="923" y="483" text-anchor="middle" fill="#92400E" font-size="12" font-weight="700">NetworkX DiGraph</text>
+  <text x="923" y="498" text-anchor="middle" fill="#B45309" font-size="9">L3 Causal Knowledge Graph</text>
+  <text x="812" y="516" fill="#475569" font-size="9">Nodes: features, business metric priors</text>
+  <text x="812" y="530" fill="#475569" font-size="9">Edges: FK relationships, causal priors</text>
+  <text x="812" y="544" fill="#475569" font-size="9">BFS traversal from target node</text>
+  <text x="812" y="558" fill="#475569" font-size="9">PageRank centrality for root cause rank</text>
+  <text x="812" y="572" fill="#475569" font-size="9">Persisted: l3_ecom.gml</text>
+  <text x="812" y="586" fill="#64748B" font-size="8">Rebuilt on each RCA run</text>
+
+  <!-- Plotly Visualisations -->
+  <rect x="804" y="604" width="239" height="128" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+  <text x="923" y="623" text-anchor="middle" fill="#1E3A8A" font-size="12" font-weight="700">Plotly Visualizations</text>
+  <text x="923" y="638" text-anchor="middle" fill="#1D4ED8" font-size="9">SENTINEL dark theme template</text>
+  <text x="812" y="656" fill="#475569" font-size="9">Captured as standalone HTML</text>
+  <text x="812" y="670" fill="#475569" font-size="9">Injected into ChartFrame (iframe)</text>
+  <text x="812" y="684" fill="#475569" font-size="9">safe_show() queue for async render</text>
+  <text x="812" y="698" fill="#475569" font-size="9">_analyze_chart() deep LLM explanation</text>
+  <text x="812" y="712" fill="#475569" font-size="9">{ why, what, how_to_read } per chart</text>
+
+  <!-- Python stack -->
+  <rect x="804" y="744" width="239" height="120" rx="10" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1"/>
+  <text x="923" y="762" text-anchor="middle" fill="#334155" font-size="10" font-weight="700">Python Stack (49 packages)</text>
+  <text x="812" y="778" fill="#475569" font-size="9">Web: fastapi, uvicorn, pydantic</text>
+  <text x="812" y="792" fill="#475569" font-size="9">LLM: langchain-openai / anthropic / google</text>
+  <text x="812" y="806" fill="#475569" font-size="9">ML: sklearn, xgboost, prophet, statsmodels</text>
+  <text x="812" y="820" fill="#475569" font-size="9">Stats: scipy, numpy, sympy, dcor</text>
+  <text x="812" y="834" fill="#475569" font-size="9">Data: duckdb, pandas, pyarrow, networkx</text>
+  <text x="812" y="848" fill="#475569" font-size="9">Memory: chromadb, sentence-transformers</text>
+
+  <!-- ============================================================ -->
+  <!-- COLUMN 5: LLM LAYER  x=1065..1382                           -->
+  <!-- ============================================================ -->
+  <rect x="1065" y="72" width="317" height="828" rx="12" fill="#FDF4FF" stroke="#E879F9" stroke-width="1.5"/>
+  <text x="1223" y="96" text-anchor="middle" fill="#581C87" font-size="13" font-weight="700">LLM Layer</text>
+  <text x="1223" y="112" text-anchor="middle" fill="#9333EA" font-size="10">llm_factory.py: 6 providers, hot-swap at runtime</text>
+
+  <!-- OpenAI -->
+  <rect x="1077" y="124" width="293" height="76" rx="9" fill="#FFFFFF" stroke="#334155" stroke-width="1.5"/>
+  <text x="1223" y="143" text-anchor="middle" fill="#1E293B" font-size="11" font-weight="700">OpenAI</text>
+  <text x="1223" y="158" text-anchor="middle" fill="#475569" font-size="9">MAIN: gpt-5.2, gpt-4o, o3-mini</text>
+  <text x="1223" y="172" text-anchor="middle" fill="#475569" font-size="9">FAST: gpt-4o-mini, gpt-4.1-nano</text>
+  <text x="1223" y="186" text-anchor="middle" fill="#94A3B8" font-size="8">ChatOpenAI, azure_endpoint supported</text>
+
+  <!-- Anthropic -->
+  <rect x="1077" y="208" width="293" height="76" rx="9" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/>
+  <text x="1223" y="227" text-anchor="middle" fill="#991B1B" font-size="11" font-weight="700">Anthropic Claude</text>
+  <text x="1223" y="242" text-anchor="middle" fill="#475569" font-size="9">MAIN: claude-opus-4-6, claude-sonnet-4-6</text>
+  <text x="1223" y="256" text-anchor="middle" fill="#475569" font-size="9">FAST: claude-haiku-4-5</text>
+  <text x="1223" y="270" text-anchor="middle" fill="#94A3B8" font-size="8">ChatAnthropic</text>
+
+  <!-- Google -->
+  <rect x="1077" y="292" width="293" height="76" rx="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1223" y="311" text-anchor="middle" fill="#1E3A8A" font-size="11" font-weight="700">Google Gemini</text>
+  <text x="1223" y="326" text-anchor="middle" fill="#475569" font-size="9">MAIN: gemini-3.1-pro, gemini-2.0-flash</text>
+  <text x="1223" y="340" text-anchor="middle" fill="#475569" font-size="9">FAST: gemini-2.5-flash, 2.0-flash-lite</text>
+  <text x="1223" y="354" text-anchor="middle" fill="#94A3B8" font-size="8">ChatGoogleGenerativeAI</text>
+
+  <!-- NVIDIA -->
+  <rect x="1077" y="376" width="293" height="76" rx="9" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+  <text x="1223" y="395" text-anchor="middle" fill="#14532D" font-size="11" font-weight="700">NVIDIA NIM</text>
+  <text x="1223" y="410" text-anchor="middle" fill="#475569" font-size="9">MAIN: Qwen3 Next 80B</text>
+  <text x="1223" y="424" text-anchor="middle" fill="#475569" font-size="9">FAST: Llama 3.3 70B Instruct</text>
+  <text x="1223" y="438" text-anchor="middle" fill="#94A3B8" font-size="8">ChatNVIDIA (OpenAI-compatible)</text>
+
+  <!-- Groq -->
+  <rect x="1077" y="460" width="293" height="76" rx="9" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="1223" y="479" text-anchor="middle" fill="#92400E" font-size="11" font-weight="700">Groq</text>
+  <text x="1223" y="494" text-anchor="middle" fill="#475569" font-size="9">MAIN: llama-3.3-70b-versatile</text>
+  <text x="1223" y="508" text-anchor="middle" fill="#475569" font-size="9">FAST: llama-3.1-8b-instant</text>
+  <text x="1223" y="522" text-anchor="middle" fill="#94A3B8" font-size="8">ChatOpenAI(base_url=groq endpoint)</text>
+
+  <!-- HuggingFace -->
+  <rect x="1077" y="544" width="293" height="76" rx="9" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="1223" y="563" text-anchor="middle" fill="#4C1D95" font-size="11" font-weight="700">HuggingFace</text>
+  <text x="1223" y="578" text-anchor="middle" fill="#475569" font-size="9">Qwen3, Llama, Gemma, DeepSeek</text>
+  <text x="1223" y="592" text-anchor="middle" fill="#475569" font-size="9">ChatHuggingFace via HF Inference API</text>
+  <text x="1223" y="606" text-anchor="middle" fill="#94A3B8" font-size="8">free tier available</text>
+
+  <!-- call_llm wrapper -->
+  <rect x="1077" y="628" width="293" height="108" rx="9" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="1223" y="646" text-anchor="middle" fill="#334155" font-size="10" font-weight="700">call_llm() Wrapper</text>
+  <text x="1085" y="662" fill="#475569" font-size="9">1. Try MAIN_MODEL first</text>
+  <text x="1085" y="676" fill="#475569" font-size="9">2. Fallback to FAST_MODEL on error</text>
+  <text x="1085" y="690" fill="#475569" font-size="9">3. Anti-hallucination system prompt:</text>
+  <text x="1085" y="704" fill="#64748B" font-size="8">   "Only use column names from schema"</text>
+  <text x="1085" y="718" fill="#64748B" font-size="8">   "Never invent table names"</text>
+  <text x="1085" y="732" fill="#64748B" font-size="8">   "No matplotlib: only Plotly"</text>
+
+  <!-- Key validation -->
+  <rect x="1077" y="744" width="293" height="88" rx="9" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+  <text x="1223" y="762" text-anchor="middle" fill="#334155" font-size="10" font-weight="700">validate_api_key()</text>
+  <text x="1085" y="778" fill="#475569" font-size="9">invoke LLM with "Reply with OK"</text>
+  <text x="1085" y="792" fill="#475569" font-size="9">detect: auth | model | rate-limit error</text>
+  <text x="1085" y="806" fill="#475569" font-size="9">runs BEFORE namespace initialization</text>
+  <text x="1085" y="820" fill="#475569" font-size="9">blocks setup if API key is invalid</text>
+
+  <!-- ============================================================ -->
+  <!-- INTER-COLUMN ARROWS                                          -->
+  <!-- ============================================================ -->
+
+  <!-- Frontend to FastAPI -->
+  <line x1="243" y1="230" x2="253" y2="230" stroke="#2563EB" stroke-width="2" marker-end="url(#arr-b)"/>
+  <text x="248" y="224" text-anchor="middle" fill="#2563EB" font-size="7">HTTP</text>
+
+  <!-- FastAPI to Agents -->
+  <line x1="481" y1="310" x2="491" y2="310" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="481" y1="390" x2="491" y2="390" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Agents to Storage -->
+  <line x1="782" y1="270" x2="792" y2="270" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="782" y1="370" x2="792" y2="370" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="782" y1="480" x2="792" y2="480" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="787" y="264" text-anchor="middle" fill="#94A3B8" font-size="7">run_sql</text>
+  <text x="787" y="364" text-anchor="middle" fill="#94A3B8" font-size="7">chroma</text>
+  <text x="787" y="474" text-anchor="middle" fill="#94A3B8" font-size="7">graph</text>
+
+  <!-- Agents to LLM -->
+  <line x1="1053" y1="270" x2="1063" y2="270" stroke="#9333EA" stroke-width="1.5" marker-end="url(#arr-p)"/>
+  <line x1="1053" y1="420" x2="1063" y2="420" stroke="#9333EA" stroke-width="1.5" marker-end="url(#arr-p)"/>
+  <text x="1058" y="264" text-anchor="middle" fill="#9333EA" font-size="7">LLM</text>
+  <text x="1058" y="414" text-anchor="middle" fill="#9333EA" font-size="7">LLM</text>
+
+  <!-- Footer entry point -->
+  <rect x="16" y="876" width="1366" height="32" rx="7" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="700" y="897" text-anchor="middle" fill="#64748B" font-size="10">Entry point: python run.py [--build] [--dev] [--port N]  |  Auto-detects free port from 8000  |  Serves built React SPA at /  |  All API routes at /api/*</text>
+</svg>

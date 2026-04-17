@@ -1,0 +1,156 @@
+<svg viewBox="0 0 1120 760" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0,9 3.5,0 7" fill="#64748B"/>
+    </marker>
+  </defs>
+
+  <!-- Light background -->
+  <rect width="1120" height="760" fill="#F8FAFC" rx="14"/>
+
+  <!-- Title -->
+  <text x="560" y="36" text-anchor="middle" fill="#0F172A" font-size="20" font-weight="700">SENTINEL Anomaly Detection Architecture</text>
+  <text x="560" y="57" text-anchor="middle" fill="#64748B" font-size="12">Four-layer ensemble detection: Statistical + Machine Learning + Time-Series + Weighted Voting</text>
+
+  <!-- Input -->
+  <rect x="390" y="70" width="340" height="48" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+  <text x="560" y="90" text-anchor="middle" fill="#1E3A8A" font-size="13" font-weight="700">Dataset (any domain)</text>
+  <text x="560" y="108" text-anchor="middle" fill="#64748B" font-size="10">Auto-profile: numeric columns, date column detection, row count</text>
+
+  <line x1="560" y1="118" x2="560" y2="142" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Fork header -->
+  <line x1="170" y1="148" x2="950" y2="148" stroke="#94A3B8" stroke-width="1.5"/>
+  <line x1="170" y1="148" x2="170" y2="165" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="560" y1="148" x2="560" y2="165" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="950" y1="148" x2="950" y2="165" stroke="#94A3B8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="560" y="145" text-anchor="middle" fill="#64748B" font-size="9">Parallel execution via ThreadPoolExecutor (15 s timeout each)</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 1: Statistical  (40% weight)                           -->
+  <!-- ============================================================ -->
+  <rect x="16" y="168" width="304" height="270" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/>
+  <rect x="16" y="168" width="304" height="38" rx="12" fill="#DBEAFE"/>
+  <rect x="16" y="192" width="304" height="14" fill="#DBEAFE"/>
+  <text x="168" y="188" text-anchor="middle" fill="#1E3A8A" font-size="12" font-weight="700">Layer 1: Statistical</text>
+  <text x="168" y="210" text-anchor="middle" fill="#2563EB" font-size="10">40% weight in ensemble vote</text>
+
+  <!-- Rolling Z-score sub-box -->
+  <rect x="28" y="220" width="280" height="66" rx="8" fill="#FFFFFF" stroke="#2563EB" stroke-width="1"/>
+  <text x="168" y="236" text-anchor="middle" fill="#1D4ED8" font-size="10" font-weight="600">Rolling Z-Score</text>
+  <text x="168" y="251" text-anchor="middle" fill="#1E40AF" font-size="9">z = (x_i - mu_window) / sigma_window</text>
+  <text x="168" y="265" text-anchor="middle" fill="#475569" font-size="9">window=5, flag if |z| is greater than threshold</text>
+  <text x="168" y="279" text-anchor="middle" fill="#94A3B8" font-size="8">vectorized via pandas rolling(), O(n)</text>
+
+  <!-- IQR sub-box -->
+  <rect x="28" y="293" width="280" height="66" rx="8" fill="#FFFFFF" stroke="#0EA5E9" stroke-width="1"/>
+  <text x="168" y="309" text-anchor="middle" fill="#0369A1" font-size="10" font-weight="600">IQR Bounds</text>
+  <text x="168" y="324" text-anchor="middle" fill="#0C4A6E" font-size="9">fence_low  = Q1 - 1.5 * IQR</text>
+  <text x="168" y="338" text-anchor="middle" fill="#0C4A6E" font-size="9">fence_high = Q3 + 1.5 * IQR</text>
+  <text x="168" y="352" text-anchor="middle" fill="#94A3B8" font-size="8">IQR = Q3 - Q1,  Tukey fences</text>
+
+  <!-- Hampel sub-box -->
+  <rect x="28" y="366" width="280" height="60" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1"/>
+  <text x="168" y="382" text-anchor="middle" fill="#5B21B6" font-size="10" font-weight="600">Hampel Filter</text>
+  <text x="168" y="396" text-anchor="middle" fill="#4C1D95" font-size="9">MAD = median( |x_i - median(window)| )</text>
+  <text x="168" y="410" text-anchor="middle" fill="#4C1D95" font-size="9">outlier if |x_i - median| greater than k * MAD,  k=3</text>
+  <text x="168" y="422" text-anchor="middle" fill="#94A3B8" font-size="8">robust to breakdown point 50%</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 2: Machine Learning  (35% weight)                      -->
+  <!-- ============================================================ -->
+  <rect x="334" y="168" width="452" height="270" rx="12" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
+  <rect x="334" y="168" width="452" height="38" rx="12" fill="#EDE9FE"/>
+  <rect x="334" y="192" width="452" height="14" fill="#EDE9FE"/>
+  <text x="560" y="188" text-anchor="middle" fill="#4C1D95" font-size="12" font-weight="700">Layer 2: Machine Learning</text>
+  <text x="560" y="210" text-anchor="middle" fill="#7C3AED" font-size="10">35% weight  |  hard cap at 3,000 rows (random sample)</text>
+
+  <!-- IsolationForest sub-box -->
+  <rect x="346" y="220" width="428" height="76" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1"/>
+  <text x="560" y="236" text-anchor="middle" fill="#5B21B6" font-size="10" font-weight="600">Isolation Forest (60% of ML weight)</text>
+  <text x="560" y="251" text-anchor="middle" fill="#4C1D95" font-size="9">score(x,n) = 2^( -E[h(x)] / c(n) )</text>
+  <text x="560" y="265" text-anchor="middle" fill="#475569" font-size="9">h(x) = path length to isolate x,   c(n) = expected path length for n samples</text>
+  <text x="560" y="279" text-anchor="middle" fill="#475569" font-size="9">anomaly if score is close to 1.0  (short path = easy to isolate)</text>
+  <text x="560" y="291" text-anchor="middle" fill="#94A3B8" font-size="8">contamination=auto, n_estimators=100</text>
+
+  <!-- PCA Reconstruction Error sub-box -->
+  <rect x="346" y="303" width="428" height="76" rx="8" fill="#FFFFFF" stroke="#0EA5E9" stroke-width="1"/>
+  <text x="560" y="319" text-anchor="middle" fill="#0369A1" font-size="10" font-weight="600">PCA Reconstruction Error (40% of ML weight)</text>
+  <text x="560" y="334" text-anchor="middle" fill="#0C4A6E" font-size="9">error = ||x - x_hat||^2   where   x_hat = P * P^T * x</text>
+  <text x="560" y="348" text-anchor="middle" fill="#0C4A6E" font-size="9">P = top-k principal components (95% variance explained)</text>
+  <text x="560" y="362" text-anchor="middle" fill="#475569" font-size="9">high error = multi-dimensional outlier, deviates from normal subspace</text>
+  <text x="560" y="374" text-anchor="middle" fill="#94A3B8" font-size="8">sklearn PCA, scores normalized to [0,1]</text>
+
+  <!-- MinCovDet sub-box -->
+  <rect x="346" y="386" width="428" height="44" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="1"/>
+  <text x="560" y="403" text-anchor="middle" fill="#15803D" font-size="10" font-weight="600">MinCovDet Mahalanobis (optional, n below 500)</text>
+  <text x="560" y="418" text-anchor="middle" fill="#166534" font-size="9">d^2 = (x - mu)^T * Sigma^(-1) * (x - mu)     robust covariance estimator</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 3: Time-Series  (25% weight)                           -->
+  <!-- ============================================================ -->
+  <rect x="800" y="168" width="304" height="270" rx="12" fill="#F0FDF4" stroke="#16A34A" stroke-width="2"/>
+  <rect x="800" y="168" width="304" height="38" rx="12" fill="#DCFCE7"/>
+  <rect x="800" y="192" width="304" height="14" fill="#DCFCE7"/>
+  <text x="952" y="188" text-anchor="middle" fill="#14532D" font-size="12" font-weight="700">Layer 3: Time-Series</text>
+  <text x="952" y="210" text-anchor="middle" fill="#16A34A" font-size="10">25% weight  |  requires date column</text>
+
+  <!-- Rolling Band sub-box -->
+  <rect x="812" y="220" width="280" height="66" rx="8" fill="#FFFFFF" stroke="#16A34A" stroke-width="1"/>
+  <text x="952" y="236" text-anchor="middle" fill="#15803D" font-size="10" font-weight="600">Rolling ±2 sigma Band (vectorized)</text>
+  <text x="952" y="251" text-anchor="middle" fill="#166534" font-size="9">mu_r = rolling_mean(w),   sigma_r = rolling_std(w)</text>
+  <text x="952" y="265" text-anchor="middle" fill="#166534" font-size="9">flag if x_i outside [mu_r - 2*sigma_r,  mu_r + 2*sigma_r]</text>
+  <text x="952" y="279" text-anchor="middle" fill="#94A3B8" font-size="8">pandas rolling(), min_periods=2, no Python loop</text>
+
+  <!-- CUSUM sub-box -->
+  <rect x="812" y="293" width="280" height="76" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="1"/>
+  <text x="952" y="309" text-anchor="middle" fill="#B45309" font-size="10" font-weight="600">CUSUM: Persistent Mean Shift</text>
+  <text x="952" y="324" text-anchor="middle" fill="#92400E" font-size="9">S_pos_i = max(0,  S_pos_{i-1} + x_i - mu0 - k)</text>
+  <text x="952" y="338" text-anchor="middle" fill="#92400E" font-size="9">S_neg_i = max(0,  S_neg_{i-1} + mu0 - x_i - k)</text>
+  <text x="952" y="352" text-anchor="middle" fill="#475569" font-size="9">alarm if S_pos or S_neg exceeds h (decision interval)</text>
+  <text x="952" y="364" text-anchor="middle" fill="#94A3B8" font-size="8">k = 0.5*sigma (allowance),  h = 5*sigma (threshold)</text>
+
+  <!-- KS Test sub-box -->
+  <rect x="812" y="376" width="280" height="54" rx="8" fill="#FFFFFF" stroke="#DB2777" stroke-width="1"/>
+  <text x="952" y="392" text-anchor="middle" fill="#9D174D" font-size="10" font-weight="600">Kolmogorov-Smirnov Distribution Shift</text>
+  <text x="952" y="407" text-anchor="middle" fill="#831843" font-size="9">KS_stat = sup | F1(x) - F2(x) |</text>
+  <text x="952" y="421" text-anchor="middle" fill="#475569" font-size="9">first half vs second half; flag second-half rows if p below 0.05</text>
+
+  <!-- Arrows down to ensemble -->
+  <line x1="168" y1="438" x2="168" y2="490" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="560" y1="438" x2="560" y2="490" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="952" y1="438" x2="952" y2="490" stroke="#64748B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="168" y="468" text-anchor="middle" fill="#64748B" font-size="9">stat_score in [0,1]</text>
+  <text x="560" y="468" text-anchor="middle" fill="#64748B" font-size="9">ml_score in [0,1]</text>
+  <text x="952" y="468" text-anchor="middle" fill="#64748B" font-size="9">ts_score in [0,1]</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 4: Weighted Ensemble + Majority Vote                   -->
+  <!-- ============================================================ -->
+  <rect x="16" y="493" width="1088" height="120" rx="12" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/>
+  <rect x="16" y="493" width="1088" height="38" rx="12" fill="#FEF3C7"/>
+  <rect x="16" y="517" width="1088" height="14" fill="#FEF3C7"/>
+  <text x="560" y="513" text-anchor="middle" fill="#92400E" font-size="13" font-weight="700">Layer 4: Weighted Ensemble + Majority Vote</text>
+  <text x="560" y="535" text-anchor="middle" fill="#D97706" font-size="10">Combined score from all three detection layers</text>
+
+  <text x="560" y="557" text-anchor="middle" fill="#92400E" font-size="12" font-weight="600">score_ensemble = 0.40 * stat_score + 0.35 * ml_score + 0.25 * ts_score</text>
+
+  <text x="170" y="581" text-anchor="middle" fill="#B45309" font-size="10">CRITICAL if score >= 0.70</text>
+  <text x="170" y="595" text-anchor="middle" fill="#64748B" font-size="9">|z| >= 4.0 sigma</text>
+
+  <text x="560" y="581" text-anchor="middle" fill="#B45309" font-size="10">HIGH if score >= 0.45</text>
+  <text x="560" y="595" text-anchor="middle" fill="#64748B" font-size="9">|z| >= 3.0 sigma</text>
+
+  <text x="950" y="581" text-anchor="middle" fill="#B45309" font-size="10">MEDIUM if score >= threshold</text>
+  <text x="950" y="595" text-anchor="middle" fill="#64748B" font-size="9">|z| >= 2.0 sigma</text>
+
+  <text x="560" y="608" text-anchor="middle" fill="#92400E" font-size="9">per-method results available: methods.statistical | methods.ml | methods.timeseries | methods.ensemble</text>
+
+  <!-- Output -->
+  <line x1="560" y1="613" x2="560" y2="636" stroke="#64748B" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="100" y="639" width="920" height="68" rx="10" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+  <text x="560" y="659" text-anchor="middle" fill="#92400E" font-size="11" font-weight="700">Response Structure</text>
+  <text x="560" y="675" text-anchor="middle" fill="#475569" font-size="9">anomalies[], methods{ statistical, ml, timeseries, ensemble }, charts[] (8 types), insights narrative</text>
+  <text x="560" y="689" text-anchor="middle" fill="#94A3B8" font-size="8">charts: timeline, z-score heatmap, PCA scatter, severity donut, CUSUM, box plots, parallel coords, score distribution</text>
+  <text x="560" y="702" text-anchor="middle" fill="#94A3B8" font-size="8">each chart includes: { title, html, explanation: { why, what, how_to_read } }</text>
+</svg>
