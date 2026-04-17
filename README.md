@@ -465,7 +465,7 @@ Domain-specific SQL patterns are stored as few-shot examples seeded with real co
 
 **Domain detection scoring:**
 
-$$\text{score}(d) = \sum_{\text{signals}} \mathbf{1}[\text{signal} \in \text{cols}] + 3 \cdot \sum_{\text{table\_hints}} \mathbf{1}[\text{hint} \in \text{table\_names}]$$
+$$\text{score}(d) = \sum_{\text{signals}} \mathbf{1}[\text{signal} \in \text{cols}] + 3 \cdot \sum_{\text{table hints}} \mathbf{1}[\text{hint} \in \text{table names}]$$
 
 Domain $d^*$ is selected when $\text{score}(d^*) \geq 3$; otherwise the system falls back to "generic".
 
