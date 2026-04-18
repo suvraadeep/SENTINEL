@@ -1,15 +1,3 @@
-#!/usr/bin/env python3
-"""
-SENTINEL startup script.
-
-Usage
------
-  python run.py            # start server (auto-detect host/port from .env)
-  python run.py --build    # build frontend first, then start
-  python run.py --dev      # start in development mode (reload)
-  python run.py --port 9000  # force a specific port
-"""
-
 import argparse
 import os
 import socket
