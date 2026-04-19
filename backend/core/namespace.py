@@ -131,12 +131,12 @@ def _apply_plotly_theme(ns: dict) -> None:
 # ------------------------------------------------------------------
 def _patch_source(source: str, api_key: str, provider: str,
                   main_model: str, fast_model: str,
-                  db_path: str, chroma_path: str, graph_path: str) -> str:
+                  db_path: str, graph_path: str,
+                  supabase_url: str, supabase_key: str) -> str:
     """String-replace Kaggle-specific values before exec()."""
     replacements = {
         # Paths
         "/kaggle/working/sentinel_ecom.duckdb": db_path.replace("\\", "/"),
-        "/kaggle/working/chroma_bge": chroma_path.replace("\\", "/"),
         "/kaggle/working/l3_ecom.gml": graph_path.replace("\\", "/"),
         # API key fallback strings (model.py uses these as defaults)
         '"YOUR_NVIDIA_KEY"': f'"{api_key}"',
@@ -256,8 +256,9 @@ class SentinelNamespace:
         main_model: str,
         fast_model: str,
         db_path: str,
-        chroma_path: str,
         graph_path: str,
+        supabase_url: str = "",
+        supabase_key: str = "",
     ) -> None:
         """
         Bootstrap the shared namespace.  Called synchronously from a
@@ -266,7 +267,6 @@ class SentinelNamespace:
         with self._thread_lock:
             logger.info("Initialising SentinelNamespace (provider=%s, model=%s)", provider, main_model)
 
-            os.makedirs(chroma_path, exist_ok=True)
             os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
 
             # Seed builtins + standard modules so agent files can use them
@@ -409,6 +409,10 @@ class SentinelNamespace:
             self._ns["MAX_RETRIES"] = 5
             self._ns["MAX_TOKENS"] = 16384
 
+            # Inject Supabase credentials into namespace for memory.py
+            self._ns["SUPABASE_URL"] = supabase_url
+            self._ns["SUPABASE_KEY"] = supabase_key
+
             # Execute agent files in order
             for filename in _LOAD_ORDER:
                 path = AGENTS_DIR / filename
@@ -419,7 +423,7 @@ class SentinelNamespace:
                     source = path.read_text(encoding="utf-8")
                     source = _patch_source(
                         source, api_key, provider, main_model, fast_model,
-                        db_path, chroma_path, graph_path,
+                        db_path, graph_path, supabase_url, supabase_key,
                     )
                     if filename == "model.py":
                         source = _patch_model_py(source, api_key, provider, main_model, fast_model)
@@ -684,7 +688,7 @@ class SentinelNamespace:
 
             for tbl in tables:
                 try:
-                    df = con.execute(f"SELECT * FROM \"{tbl}\" LIMIT 5000").df()
+                    df = con.execute(f"SELECT * FROM \"{tbl}\"").df()
                 except Exception:
                     continue
                 if df.empty:
@@ -1759,16 +1763,18 @@ class SentinelNamespace:
                         errors.append(f"{tbl}: {exc}")
                         logger.warning("Could not drop table %s: %s", tbl, exc)
 
-            # Delete L2 ChromaDB episodes tagged to this dataset
-            l2 = self._ns.get("l2_collection")
-            if l2:
+            # Delete L2 Supabase episodes tagged to this dataset
+            l2_delete_fn = self._ns.get("l2_delete")
+            sb = self._ns.get("supabase")
+            if sb:
                 try:
-                    l2_results = l2.get(where={"dataset": filename})
-                    if l2_results.get("ids"):
-                        l2.delete(ids=l2_results["ids"])
+                    resp = sb.table("l2_episodic").select("id").eq("dataset_type", filename).execute()
+                    ids_to_del = [r["id"] for r in (resp.data or [])]
+                    if ids_to_del and l2_delete_fn:
+                        l2_delete_fn(ids_to_del)
                         logger.info(
                             "Deleted %d L2 episodes for dataset %s",
-                            len(l2_results["ids"]), filename,
+                            len(ids_to_del), filename,
                         )
                 except Exception as exc:
                     logger.warning("L2 cleanup for dataset %s failed: %s", filename, exc)
@@ -1899,34 +1905,34 @@ class SentinelNamespace:
     # Memory stats
     # ------------------------------------------------------------------
     def get_memory_stats(self) -> Dict[str, Any]:
-        l2 = self._ns.get("l2_collection")
-        l4 = self._ns.get("l4_collection")
+        l2_count_fn = self._ns.get("l2_count")
+        l4_count_fn = self._ns.get("l4_count")
         l3 = self._ns.get("l3_graph")
         return {
-            "l2_count": l2.count() if l2 else 0,
-            "l4_count": l4.count() if l4 else 0,
+            "l2_count": l2_count_fn() if l2_count_fn else 0,
+            "l4_count": l4_count_fn() if l4_count_fn else 0,
             "l3_nodes": l3.number_of_nodes() if l3 else 0,
             "l3_edges": l3.number_of_edges() if l3 else 0,
         }
 
     def get_l2_episodes(self, dataset: Optional[str] = None) -> List[Dict]:
-        l2 = self._ns.get("l2_collection")
-        if not l2 or l2.count() == 0:
+        sb = self._ns.get("supabase")
+        if not sb:
             return []
         try:
+            query = sb.table("l2_episodic").select("*")
             if dataset:
-                result = l2.get(where={"dataset": dataset}, include=["documents", "metadatas"])
-            else:
-                result = l2.get(include=["documents", "metadatas"])
+                query = query.eq("dataset_type", dataset)
+            result = query.order("created_at", desc=True).limit(200).execute()
             episodes = []
-            for doc, meta in zip(result["documents"], result["metadatas"]):
+            for row in (result.data or []):
                 episodes.append({
-                    "question": doc,
-                    "sql": meta.get("sql", "")[:400],
-                    "result_summary": meta.get("result_summary", "")[:300],
-                    "score": float(meta.get("score", 1.0)),
-                    "timestamp": meta.get("timestamp", ""),
-                    "dataset": meta.get("dataset", ""),
+                    "question": row.get("question", ""),
+                    "sql": (row.get("sql_text", "") or "")[:400],
+                    "result_summary": (row.get("result_summary", "") or "")[:300],
+                    "score": float(row.get("score", 1.0)),
+                    "timestamp": row.get("created_at", ""),
+                    "dataset": row.get("dataset_type", ""),
                 })
             return episodes
         except Exception as exc:
@@ -1934,17 +1940,17 @@ class SentinelNamespace:
             return []
 
     def get_l4_patterns(self) -> List[Dict]:
-        l4 = self._ns.get("l4_collection")
-        if not l4 or l4.count() == 0:
+        sb = self._ns.get("supabase")
+        if not sb:
             return []
         try:
-            result = l4.get(include=["documents", "metadatas"])
+            result = sb.table("l4_procedural").select("*").limit(200).execute()
             patterns = []
-            for doc, meta in zip(result["documents"], result["metadatas"]):
+            for row in (result.data or []):
                 patterns.append({
-                    "problem_type": meta.get("problem_type", doc[:60]),
-                    "sql_template": meta.get("sql_template", "")[:500],
-                    "example_query": doc[:200],
+                    "problem_type": row.get("problem_type", ""),
+                    "sql_template": (row.get("sql_template", "") or "")[:500],
+                    "example_query": (row.get("description", "") or "")[:200],
                 })
             return patterns
         except Exception as exc:
@@ -2032,13 +2038,45 @@ class SentinelNamespace:
             return self._ns.get("l3_graph", nx.DiGraph())
         self._ns["build_l3_graph"] = _updated_build_l3_graph
 
-        # Save to GML
-        graph_path = self._ns.get("GRAPH_PATH")
-        if graph_path:
+        # Persist to Supabase L3 tables
+        sb = self._ns.get("supabase")
+        if sb:
             try:
-                nx.write_gml(G, graph_path)
-            except Exception:
-                pass
+                # Clear existing L3 data
+                sb.table("l3_edges").delete().neq("id", -1).execute()
+                sb.table("l3_nodes").delete().neq("id", "").execute()
+
+                # Insert nodes
+                nodes_batch = []
+                for n, data in G.nodes(data=True):
+                    nodes_batch.append({
+                        "id": str(n),
+                        "node_type": data.get("type", "unknown"),
+                        "label": str(n),
+                        "description": data.get("description", ""),
+                        "dataset": data.get("dataset", ""),
+                        "properties": {},
+                    })
+                if nodes_batch:
+                    # Batch upsert in chunks of 100
+                    for i in range(0, len(nodes_batch), 100):
+                        sb.table("l3_nodes").upsert(nodes_batch[i:i+100]).execute()
+
+                # Insert edges
+                edges_batch = []
+                for u, v, data in G.edges(data=True):
+                    edges_batch.append({
+                        "source_id": str(u),
+                        "target_id": str(v),
+                        "rel": data.get("rel", "related"),
+                        "weight": data.get("weight", 1.0),
+                        "confidence": data.get("confidence", 1.0),
+                    })
+                if edges_batch:
+                    for i in range(0, len(edges_batch), 100):
+                        sb.table("l3_edges").insert(edges_batch[i:i+100]).execute()
+            except Exception as exc:
+                logger.warning("L3 Supabase sync failed (non-critical): %s", exc)
 
         logger.info(
             "L3 graph rebuilt: %d nodes, %d edges",

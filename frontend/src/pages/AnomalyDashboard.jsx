@@ -982,7 +982,7 @@ export default function AnomalyDashboard() {
           onClose={() => setChatOpen(false)}
           context={{
             table:    result.table,
-            stats:    result.stats,
+            stats:    result.methods?.[activeMethod]?.stats ?? result.stats,
             profile:  result.profile,
             anomalies: result.anomalies?.slice(0, 10) ?? [],
           }}

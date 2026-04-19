@@ -10,7 +10,6 @@ from typing import TypedDict, List, Dict, Any, Literal, Optional, Tuple
 import numpy as np
 import pandas as pd
 import duckdb
-import chromadb
 import networkx as nx
 import plotly.graph_objects as go
 import plotly.express as px
@@ -51,11 +50,11 @@ _fast_llm = None
 MAX_RETRIES = 5
 MAX_TOKENS  = 16384
 
-# ── Paths (patched by namespace.py to real local paths) ───────────────
-DB_PATH     = "/kaggle/working/sentinel_ecom.duckdb"
-CHROMA_PATH = "/kaggle/working/chroma_bge"
-GRAPH_PATH  = "/kaggle/working/l3_ecom.gml"
-os.makedirs(CHROMA_PATH, exist_ok=True)
+# ── Paths and Supabase config (patched by namespace.py to real values) ─
+DB_PATH       = "/kaggle/working/sentinel_ecom.duckdb"
+GRAPH_PATH    = "/kaggle/working/l3_ecom.gml"
+SUPABASE_URL  = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY  = os.environ.get("SUPABASE_KEY", "")
 
 
 CHART_CODE_HINT = (

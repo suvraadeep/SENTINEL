@@ -8,6 +8,7 @@ GET  /api/provider/models     — return model list for a given provider
 from __future__ import annotations
 import logging
 import os
+from dotenv import load_dotenv
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
@@ -23,11 +24,13 @@ from backend.core.namespace import sentinel_ns
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/provider", tags=["provider"])
 
-# Paths used by the shared namespace
+# Paths and Supabase config
 _BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DB_PATH     = str(_BASE_DIR / "data" / "sentinel_ecom.duckdb")
-CHROMA_PATH = str(_BASE_DIR / "data" / "chroma_bge")
-GRAPH_PATH  = str(_BASE_DIR / "data" / "l3_ecom.gml")
+load_dotenv(_BASE_DIR / ".env")
+DB_PATH       = str(_BASE_DIR / "data" / "sentinel_ecom.duckdb")
+GRAPH_PATH    = str(_BASE_DIR / "data" / "l3_ecom.gml")
+SUPABASE_URL  = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY  = os.environ.get("SUPABASE_KEY", "")
 
 
 @router.post("/configure", response_model=ProviderConfigResponse)
@@ -62,8 +65,9 @@ async def configure_provider(req: ProviderConfigRequest):
                 main_model=req.main_model,
                 fast_model=req.fast_model,
                 db_path=DB_PATH,
-                chroma_path=CHROMA_PATH,
                 graph_path=GRAPH_PATH,
+                supabase_url=SUPABASE_URL,
+                supabase_key=SUPABASE_KEY,
             )
         else:
             # Just swap LLMs — no need to re-exec all agents

@@ -6,15 +6,26 @@ def memory_curator(state: SentinelState = None) -> dict:
     """Nightly: cluster L2 → merge duplicates → promote to L4 → extract L3 rules."""
     print("[MemoryCurator] Starting nightly consolidation...")
 
-    if l2_collection.count() == 0:
+    if l2_count() == 0:
         print("  L2 empty.")
         return {}
 
-    all_eps   = l2_collection.get(include=["documents","metadatas","embeddings"])
-    docs      = all_eps["documents"]
-    metas     = all_eps["metadatas"]
-    ids       = all_eps["ids"]
-    embs      = np.array(all_eps["embeddings"])
+    all_eps   = l2_get_all()
+    docs      = all_eps.get("documents", [])
+    metas     = all_eps.get("metadatas", [])
+    ids       = all_eps.get("ids", [])
+    raw_embs  = all_eps.get("embeddings", [])
+
+    # Filter out None embeddings
+    valid_indices = [i for i, e in enumerate(raw_embs) if e is not None]
+    if not valid_indices:
+        print("  No valid embeddings found.")
+        return {}
+
+    docs  = [docs[i] for i in valid_indices]
+    metas = [metas[i] for i in valid_indices]
+    ids   = [ids[i] for i in valid_indices]
+    embs  = np.array([raw_embs[i] for i in valid_indices])
 
     print(f"  L2 episodes to process: {len(docs)}")
 
@@ -38,14 +49,14 @@ def memory_curator(state: SentinelState = None) -> dict:
                 scores = [float(metas[i].get("score", 1.0)) for i in cluster]
                 best   = cluster[np.argmax(scores)]
                 to_del = [ids[i] for i in cluster if i != best]
-                l2_collection.delete(ids=to_del)
+                l2_delete(to_del)
                 deleted += len(to_del)
         print(f"  Merged: {deleted} duplicate episodes removed")
 
     promoted = 0
     for doc, meta in zip(docs, metas):
         if float(meta.get("score", 1.0)) >= 0.9:
-            sql = meta.get("sql", "")
+            sql = meta.get("sql_text", "") or meta.get("sql", "")
             if sql and "/* " not in sql and len(sql) > 20:
                 pt = call_llm(f"In ≤6 words, what SQL problem type: {doc}",
                               model=FAST_MODEL, temperature=0.0)
@@ -68,6 +79,6 @@ def memory_curator(state: SentinelState = None) -> dict:
                 l3_graph.add_node(nid, type="business_rule", description=rule_str)
             print(f"  Extracted {len(rules)} rules → L3")
 
-    print(f"\n[MemoryCurator] L2:{l2_collection.count()} L4:{l4_collection.count()} "
+    print(f"\n[MemoryCurator] L2:{l2_count()} L4:{l4_count()} "
           f"L3:{l3_graph.number_of_nodes()} nodes")
     return {}

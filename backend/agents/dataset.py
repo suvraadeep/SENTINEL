@@ -4,22 +4,25 @@ used by all downstream agents.
 
 NO synthetic data is generated here. The actual data comes exclusively from
 user uploads via the /api/upload endpoint, which calls update_data() to swap
-in the correct DuckDB connection and schema.
+in the correct Supabase-backed connection and schema.
 
 On initial exec (before any upload), con/SCHEMA are set to empty defaults
 so that agents can be loaded without errors.
 """
 
-import duckdb
 import networkx as nx
 import pandas as pd
 import numpy as np
 from scipy import stats
 from typing import Tuple, List, Dict, Optional
 
-# ── Initial empty connection (replaced by update_data after upload) ──────────
-con = duckdb.connect(DB_PATH)
-con.execute("PRAGMA threads=4")
+# ── Supabase-backed SQL execution ────────────────────────────────────────────
+# These globals are injected at runtime by namespace.py
+# SUPABASE_URL, SUPABASE_KEY, and the supabase client are set by namespace
+
+# con is set by namespace.py update_data() — it can be either a DuckDB con
+# or None (when using Supabase-only mode)
+con = None
 
 # ── Schema — empty until a dataset is uploaded ──────────────────────────────
 DATA_DATE_MIN = None
@@ -29,6 +32,8 @@ DATA_DATE_MIDPOINT = None
 
 def get_schema() -> str:
     """Build schema string from ALL tables currently in the database."""
+    if con is None:
+        return ""
     parts = []
     try:
         tables = [r[0] for r in con.execute(
@@ -83,6 +88,8 @@ def run_sql_approx(query: str, sample_frac: float = 0.3,
 
 
 def run_sql(query: str) -> pd.DataFrame:
+    if con is None:
+        raise ValueError("No database connection. Please upload a dataset first.")
     try:
         return con.execute(query).df()
     except Exception as e:
@@ -90,16 +97,19 @@ def run_sql(query: str) -> pd.DataFrame:
 
 
 # Print what we have (will show nothing until upload)
-try:
-    tables = [r[0] for r in con.execute(
-        "SELECT table_name FROM information_schema.tables "
-        "WHERE table_schema='main'"
-    ).fetchall()]
-    for tbl in tables:
-        n = con.execute(f"SELECT COUNT(*) FROM {tbl}").fetchone()[0]
-        print(f"  {tbl}: {n:,} rows")
-except Exception:
-    print("  No tables loaded yet — awaiting dataset upload")
+if con is not None:
+    try:
+        tables = [r[0] for r in con.execute(
+            "SELECT table_name FROM information_schema.tables "
+            "WHERE table_schema='main'"
+        ).fetchall()]
+        for tbl in tables:
+            n = con.execute(f"SELECT COUNT(*) FROM {tbl}").fetchone()[0]
+            print(f"  {tbl}: {n:,} rows")
+    except Exception:
+        print("  No tables loaded yet — awaiting dataset upload")
+else:
+    print("  No database connection — awaiting dataset upload")
 
 print(f"\nSchema loaded ({len(SCHEMA)} chars)")
 
@@ -110,6 +120,9 @@ def build_l3_graph() -> nx.DiGraph:
     exist in the current DuckDB connection.
     """
     G = nx.DiGraph()
+
+    if con is None:
+        return G
 
     # Discover tables and columns from the actual database
     try:
@@ -193,6 +206,7 @@ def l3_get_business_rules() -> str:
     return "\n".join(f"  - {r}" for r in rules)
 
 
-nx.write_gml(l3_graph, GRAPH_PATH)
+# L3 graph persistence is now handled by namespace.py → Supabase
+# No local GML file write needed
 print(f"L3 graph: {l3_graph.number_of_nodes()} nodes, {l3_graph.number_of_edges()} edges")
 print(f"\nBusiness rules:\n{l3_get_business_rules()}")

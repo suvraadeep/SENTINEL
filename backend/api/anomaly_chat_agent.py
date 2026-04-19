@@ -91,7 +91,7 @@ def _tool_compute_stat(column: str, stat: str, con, table: str) -> str:
             return f"**P{int(pct*100)} of `{column}`:** {round(val, 4) if val is not None else 'N/A'}"
         elif stat_lower == "correlation":
             # correlation with all other numeric cols
-            df = con.execute(f'SELECT * FROM "{table}" LIMIT 5000').df()
+            df = con.execute(f'SELECT * FROM "{table}"').df()
             num_cols = df.select_dtypes("number").columns.tolist()
             if column not in num_cols:
                 return f"**Error:** `{column}` is not numeric."
@@ -111,23 +111,24 @@ def _tool_explain_anomaly(row_index: int, column: str, con, table: str) -> str:
     if con is None or not table:
         return "**Error:** No connection or table specified."
     try:
-        df = con.execute(f'SELECT * FROM "{table}" LIMIT 50000').df()
+        df = con.execute(f'SELECT * FROM "{table}"').df()
         if column not in df.columns:
             return f"**Error:** Column `{column}` not found in table `{table}`."
         if row_index < 0 or row_index >= len(df):
             return f"**Error:** Row index {row_index} out of range (table has {len(df)} rows)."
 
-        series = df[column].dropna()
-        value  = df.loc[row_index, column]
+        # Use full series (ffill NaNs) so positional indices match engine's row_index
+        series = df[column].ffill().bfill().fillna(0)
+        value  = series.iloc[row_index]
 
         # Rolling baseline (window=20)
         WINDOW = min(20, max(5, len(series) // 10))
         rm = series.rolling(WINDOW, min_periods=2).mean()
-        rs = series.rolling(WINDOW, min_periods=2).std().fillna(1e-9)
+        rs = series.rolling(WINDOW, min_periods=2).std().fillna(1e-9) + 1e-9
 
-        baseline = rm.iloc[row_index] if row_index < len(rm) else series.mean()
-        std_val  = rs.iloc[row_index] if row_index < len(rs) else series.std()
-        z_score  = abs((value - baseline) / max(std_val, 1e-9))
+        baseline = float(rm.iloc[row_index]) if row_index < len(rm) else float(series.mean())
+        std_val  = float(rs.iloc[row_index]) if row_index < len(rs) else float(series.std())
+        z_score  = abs((float(value) - baseline) / max(std_val, 1e-9))
 
         # IQR
         q1, q3 = series.quantile(0.25), series.quantile(0.75)
@@ -145,7 +146,7 @@ def _tool_explain_anomaly(row_index: int, column: str, con, table: str) -> str:
         # Neighbours
         start = max(0, row_index - 3)
         end   = min(len(df), row_index + 4)
-        neighbours = df[column].iloc[start:end].round(4).tolist()
+        neighbours = series.iloc[start:end].round(4).tolist()
 
         lines = [
             f"## Anomaly Explanation — Row {row_index}, `{column}`",
@@ -153,12 +154,12 @@ def _tool_explain_anomaly(row_index: int, column: str, con, table: str) -> str:
             f"| Property | Value |",
             f"| --- | --- |",
             f"| Observed value | `{round(float(value), 4)}` |",
-            f"| Rolling baseline (w={WINDOW}) | `{round(float(baseline), 4)}` |",
-            f"| Rolling std | `{round(float(std_val), 4)}` |",
+            f"| Rolling baseline (w={WINDOW}) | `{round(baseline, 4)}` |",
+            f"| Rolling std | `{round(std_val, 4)}` |",
             f"| Z-score | `{round(z_score, 2)}` |",
             f"| Severity | {severity} |",
             f"| IQR fence | `[{round(float(lower_fence),4)}, {round(float(upper_fence),4)}]` |",
-            f"| Outside IQR fence | `{'Yes' if value < lower_fence or value > upper_fence else 'No'}` |",
+            f"| Outside IQR fence | `{'Yes' if float(value) < lower_fence or float(value) > upper_fence else 'No'}` |",
             "",
             f"**Neighbourhood (rows {start}–{end-1}):** `{neighbours}`",
             "",

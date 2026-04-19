@@ -132,9 +132,9 @@ class AnomalyEngine:
     Dataset-agnostic hybrid anomaly detection engine.
 
     Three base layers (run in parallel):
-      statistical_scores  → rolling Z-score + IQR + Hampel  (vectorized)
-      ml_scores           → IsolationForest + PCA (capped at 3 000 rows)
-      timeseries_scores   → vectorized rolling dev + CUSUM + KS shift
+      statistical_scores  → rolling Z-score + IQR + Hampel  (vectorized, all rows × all numeric cols)
+      ml_scores           → IsolationForest + PCA (fit on 5k sample, scores ALL rows)
+      timeseries_scores   → vectorized rolling dev + CUSUM + KS shift (all rows)
 
     Ensemble: 40% stat + 35% ml + 25% ts
     """
@@ -247,7 +247,7 @@ class AnomalyEngine:
                     "z_score":       z.loc[idx].round(4).values,
                     "hampel_z":      hampel_z.loc[idx].round(4).values,
                     "iqr_flag":      iqr_flag.loc[idx].astype(int).values,
-                    "stat_score":    (abs_z / 4.0).clip(0, 1).round(4).values,
+                    "stat_score":    (abs_z / (self.threshold * 2.5)).clip(0, 1).round(4).values,
                     "stat_severity": np.where(abs_z >= 4.0, "CRITICAL",
                                      np.where(abs_z >= 3.0, "HIGH", "MEDIUM")),
                 })
@@ -266,9 +266,8 @@ class AnomalyEngine:
     def ml_scores(self) -> pd.DataFrame:
         """
         IsolationForest (60%) + PCA reconstruction error (40%).
-        LOF removed — O(n²) and too slow for interactive dashboards.
+        Fits on a sample (capped at 5 000 rows for speed), then scores ALL rows.
         MinCovDet Mahalanobis added for small n (< 500) as a third signal.
-        Hard sample cap: 3 000 rows (IsoForest on 3k rows completes in < 1s).
         """
         num_cols = self.profile["num_cols"]
         df       = self.df[num_cols].fillna(0)
@@ -278,50 +277,56 @@ class AnomalyEngine:
         if len(df) < 10 or len(num_cols) < 2:
             return _EMPTY
 
-        sample = df.sample(min(3_000, len(df)), random_state=42)
+        FIT_CAP = 5_000
+        fit_sample = df.sample(min(FIT_CAP, len(df)), random_state=42) if len(df) > FIT_CAP else df
 
         try:
             from sklearn.ensemble import IsolationForest
             from sklearn.preprocessing import StandardScaler
             from sklearn.decomposition import PCA
 
+            # Fit scaler + models on the sample
             scaler   = StandardScaler()
-            X_scaled = scaler.fit_transform(sample)
+            scaler.fit(fit_sample)
 
-            # IsolationForest
+            # Score ALL rows
+            X_all = scaler.transform(df)
+
+            # IsolationForest — fit on sample, score all
             iso    = IsolationForest(contamination=0.05, random_state=42, n_jobs=-1,
                                      n_estimators=100)
-            iso.fit(X_scaled)
-            if_raw  = -iso.score_samples(X_scaled)
+            iso.fit(scaler.transform(fit_sample))
+            if_raw  = -iso.score_samples(X_all)
             if_norm = (if_raw - if_raw.min()) / ((if_raw.max() - if_raw.min()) + 1e-9)
 
-            # PCA reconstruction error
+            # PCA reconstruction error — fit on sample, score all
             n_comp  = min(max(len(num_cols) - 1, 1), 5)
             pca     = PCA(n_components=n_comp)
-            X_pca   = pca.fit_transform(X_scaled)
+            pca.fit(scaler.transform(fit_sample))
+            X_pca   = pca.transform(X_all)
             X_recon = pca.inverse_transform(X_pca)
-            pca_err  = np.mean((X_scaled - X_recon) ** 2, axis=1)
+            pca_err  = np.mean((X_all - X_recon) ** 2, axis=1)
             pca_norm = (pca_err - pca_err.min()) / ((pca_err.max() - pca_err.min()) + 1e-9)
 
             ml_score = 0.60 * if_norm + 0.40 * pca_norm
 
-            # Optional MinCovDet Mahalanobis for small n
-            if len(sample) <= 500:
+            # Optional MinCovDet Mahalanobis for small datasets
+            if len(df) <= 500:
                 try:
                     from sklearn.covariance import MinCovDet
                     mcd = MinCovDet(random_state=42, support_fraction=0.8)
-                    mcd.fit(X_scaled)
-                    mah = mcd.mahalanobis(X_scaled)
+                    mcd.fit(X_all)
+                    mah = mcd.mahalanobis(X_all)
                     mah_norm = (mah - mah.min()) / ((mah.max() - mah.min()) + 1e-9)
                     ml_score = 0.50 * if_norm + 0.30 * pca_norm + 0.20 * mah_norm
                 except Exception:
                     pass
 
             return pd.DataFrame({
-                "row_index": sample.index.tolist(),
-                "if_score":  if_norm.round(4),
-                "pca_score": pca_norm.round(4),
-                "ml_score":  ml_score.round(4),
+                "row_index": df.index.tolist(),
+                "if_score":  np.round(if_norm, 4),
+                "pca_score": np.round(pca_norm, 4),
+                "ml_score":  np.round(ml_score, 4),
             })
 
         except Exception as exc:
@@ -393,7 +398,7 @@ class AnomalyEngine:
             except Exception:
                 pass
 
-        thresh = self.threshold / 8.0
+        thresh = max(0.30, self.threshold / 4.0)
         mask   = combined_score > thresh
         if not mask.any():
             return _EMPTY
@@ -410,11 +415,63 @@ class AnomalyEngine:
         Weighted ensemble: 40% stat + 35% ml + 25% ts.
         Uses the statistical layer as the base (primary anomaly records).
         Boosts scores using ML and TS signals where available.
+        Always enriches rows with column/value/baseline/z_score so the
+        frontend table never shows empty dashes.
         """
-        if stat_df.empty and ml_df.empty:
+        if stat_df.empty and ml_df.empty and ts_df.empty:
             return pd.DataFrame()
 
-        merged = stat_df.copy() if not stat_df.empty else ml_df[["row_index"]].copy()
+        # --- Base: stat_df has per-column detail; ML/TS only have row_index ---
+        if not stat_df.empty:
+            merged = stat_df.copy()
+        else:
+            # Build row-level entries from ML or TS when stat is empty
+            row_indices = set()
+            if not ml_df.empty:
+                row_indices.update(ml_df["row_index"].tolist())
+            if not ts_df.empty and "ts_score" in ts_df.columns:
+                row_indices.update(ts_df["row_index"].tolist())
+            row_indices = sorted(row_indices)
+
+            # Enrich each row with the most extreme column from the original data
+            target_col = self.profile.get("target_col") or (
+                self.profile["num_cols"][0] if self.profile["num_cols"] else None
+            )
+            rows = []
+            for ri in row_indices:
+                if ri < 0 or ri >= len(self.df):
+                    continue
+                best_col   = target_col
+                best_val   = float(self.df.iloc[ri][target_col]) if target_col and target_col in self.df.columns else 0.0
+                best_base  = float(self.df[target_col].mean()) if target_col and target_col in self.df.columns else 0.0
+                std        = float(self.df[target_col].std()) if target_col and target_col in self.df.columns else 1e-9
+                best_z     = (best_val - best_base) / (std + 1e-9)
+
+                # Find the column with the highest absolute z-score for this row
+                for col in self.profile["num_cols"]:
+                    try:
+                        val  = float(self.df.iloc[ri][col])
+                        mu   = float(self.df[col].mean())
+                        sd   = float(self.df[col].std()) + 1e-9
+                        z_   = (val - mu) / sd
+                        if abs(z_) > abs(best_z):
+                            best_col, best_val, best_base, best_z = col, val, mu, z_
+                    except Exception:
+                        continue
+
+                rows.append({
+                    "row_index":  ri,
+                    "column":     best_col or "",
+                    "value":      round(best_val, 4),
+                    "baseline":   round(best_base, 4),
+                    "z_score":    round(best_z, 4),
+                    "stat_score": min(1.0, abs(best_z) / (self.threshold * 2.5)),
+                })
+            merged = pd.DataFrame(rows) if rows else pd.DataFrame(columns=[
+                "row_index", "column", "value", "baseline", "z_score", "stat_score"
+            ])
+
+        # --- Ensemble score ---
         merged["ensemble_score"] = merged.get(
             "stat_score", pd.Series(0.0, index=merged.index)
         ) * 0.40
@@ -435,14 +492,19 @@ class AnomalyEngine:
 
         merged["ensemble_score"] = merged["ensemble_score"].clip(0, 1).round(4)
 
-        base_sev = merged.get("stat_severity", pd.Series("MEDIUM", index=merged.index))
         merged["severity"] = np.where(
-            (merged["ensemble_score"] >= 0.70) | (base_sev == "CRITICAL"), "CRITICAL",
+            merged["ensemble_score"] >= 0.70, "CRITICAL",
             np.where(
-                (merged["ensemble_score"] >= 0.45) | (base_sev == "HIGH"), "HIGH",
+                merged["ensemble_score"] >= 0.45, "HIGH",
                 "MEDIUM"
             )
         )
+
+        # --- Ensure detail columns exist (fill if stat layer provided them) ---
+        for col_name in ["column", "value", "baseline", "z_score"]:
+            if col_name not in merged.columns:
+                merged[col_name] = None
+
         return merged.sort_values("ensemble_score", ascending=False).reset_index(drop=True)
 
     # ── Intelligent chart selection ───────────────────────────────────────────
@@ -483,6 +545,10 @@ class AnomalyEngine:
         date_col   = p["date_col"]
         num_cols   = p["num_cols"]
         df         = self.df.copy()
+        # Downsample for chart rendering to prevent timeout
+        CHART_MAX = 5_000
+        if len(df) > CHART_MAX:
+            df = df.sample(CHART_MAX, random_state=42).sort_index().reset_index(drop=True)
 
         if date_col:
             df = df.sort_values(date_col).reset_index(drop=True)
@@ -506,8 +572,11 @@ class AnomalyEngine:
             # ── 1. Timeline with anomaly markers ──────────────────────────────
             if "timeline_with_markers" in chart_types and target_col and date_col:
                 fig = go.Figure()
+                # Downsample timeline to max 2000 points for rendering speed
+                step_t = max(1, len(df) // 2000)
+                df_t = df.iloc[::step_t]
                 fig.add_trace(go.Scatter(
-                    x=df[date_col], y=df[target_col], mode="lines",
+                    x=df_t[date_col], y=df_t[target_col], mode="lines",
                     name=target_col,
                     line=dict(color=self.COLORS[0], width=1.8),
                 ))
@@ -638,13 +707,15 @@ class AnomalyEngine:
                     from sklearn.preprocessing import StandardScaler
                     from sklearn.decomposition import PCA as _PCA
 
-                    X      = df[num_cols[:8]].fillna(0).values
+                    pca_df_src = df if len(df) <= 3000 else df.sample(3000, random_state=42)
+                    X      = pca_df_src[num_cols[:8]].fillna(0).values
                     X_s    = StandardScaler().fit_transform(X)
                     pca_r  = _PCA(n_components=2).fit_transform(X_s)
                     pca_df = pd.DataFrame(pca_r, columns=["PC1","PC2"])
-                    anom_i = set(anomaly_df["row_index"].clip(0, len(df)-1).tolist())
-                    pca_df["status"] = ["Anomaly" if i in anom_i else "Normal"
-                                        for i in range(len(pca_df))]
+                    anom_i = set(anomaly_df["row_index"].clip(0, len(self.df)-1).tolist())
+                    pca_idx = pca_df_src.index.tolist()
+                    pca_df["status"] = ["Anomaly" if idx in anom_i else "Normal"
+                                        for idx in pca_idx]
                     fig = px.scatter(
                         pca_df, x="PC1", y="PC2", color="status",
                         color_discrete_map={"Anomaly":"#EF4444","Normal":"#3B82F6"},
@@ -659,7 +730,8 @@ class AnomalyEngine:
             # ── 7. Box plots ──────────────────────────────────────────────────
             if "box_plots" in chart_types and num_cols:
                 show_cols = num_cols[:6]
-                long_df   = df[show_cols].melt(var_name="metric", value_name="value")
+                box_src   = df if len(df) <= 3000 else df.sample(3000, random_state=42)
+                long_df   = box_src[show_cols].melt(var_name="metric", value_name="value")
                 fig = px.box(
                     long_df, x="metric", y="value", color="metric",
                     points="outliers",
@@ -739,25 +811,48 @@ class AnomalyEngine:
             return "No anomalies detected above the configured threshold."
 
         sev_col   = "severity" if "severity" in anomaly_df.columns else "stat_severity"
-        sev       = anomaly_df[sev_col].value_counts().to_dict() if sev_col in anomaly_df.columns else {}
+        row_count = self.profile["row_count"]
+
+        # Unique anomalous rows (each row counted once at worst severity)
+        _SEV_RANK = {"CRITICAL": 3, "HIGH": 2, "MEDIUM": 1}
+        if "row_index" in anomaly_df.columns and sev_col in anomaly_df.columns:
+            unique_rows = int(anomaly_df["row_index"].nunique())
+            row_sev = (
+                anomaly_df.assign(_r=anomaly_df[sev_col].map(_SEV_RANK).fillna(0))
+                          .groupby("row_index")["_r"].max()
+                          .map({3: "CRITICAL", 2: "HIGH", 1: "MEDIUM"})
+            )
+            sev = row_sev.value_counts().to_dict()
+        else:
+            unique_rows = int(anomaly_df["row_index"].nunique()) if "row_index" in anomaly_df.columns else len(anomaly_df)
+            sev = anomaly_df[sev_col].value_counts().to_dict() if sev_col in anomaly_df.columns else {}
+
+        pct = round(unique_rows / row_count * 100, 1) if row_count else 0
         top10_str = anomaly_df.head(10).to_string(index=False)
 
         if call_llm is None:
             return (
-                f"**{len(anomaly_df)} anomalies detected.**\n\n"
-                f"Severity breakdown: {sev}\n\n"
+                f"**{unique_rows} anomalous rows detected** out of {row_count:,} total ({pct}%).\n\n"
+                f"Severity breakdown (by unique row): {sev}\n\n"
                 f"Top anomalies:\n```\n{top10_str}\n```\n\n"
                 "Configure an LLM provider to get AI-generated narrative insights."
             )
 
         prompt = (
             f"You are a senior data scientist analysing anomaly detection results. "
-            f"Respond in clear, structured plain text (no markdown headers).\n\n"
+            f"Respond in clear, structured plain text (no markdown headers).\n"
+            f"IMPORTANT: Each anomaly record represents a per-column flag. Multiple "
+            f"flags can come from the same row. The UNIQUE ANOMALOUS ROWS count is "
+            f"the true number of distinct rows with at least one anomaly. Always "
+            f"report unique rows, never report a number exceeding the dataset size.\n\n"
             f"DATASET PROFILE: {self.profile}\n"
-            f"SEVERITY BREAKDOWN: {sev}\n"
+            f"TOTAL ROWS IN DATASET: {row_count}\n"
+            f"UNIQUE ANOMALOUS ROWS: {unique_rows} ({pct}% of dataset)\n"
+            f"TOTAL PER-COLUMN FLAGS: {len(anomaly_df)}\n"
+            f"SEVERITY BREAKDOWN (by unique row): {sev}\n"
             f"TOP ANOMALIES:\n{top10_str}\n\n"
             f"Write exactly 3 paragraphs:\n"
-            f"1. Summary — total anomalies, severity distribution, most affected columns\n"
+            f"1. Summary — unique anomalous rows out of total, severity distribution, most affected columns\n"
             f"2. Pattern analysis — likely root causes based on column names + values, "
             f"   cite specific rows/values from the data above\n"
             f"3. Recommended actions — 3 concrete steps, prioritised by severity"
@@ -766,7 +861,7 @@ class AnomalyEngine:
             return call_llm(prompt, temperature=0.1)
         except Exception as exc:
             logger.warning("LLM insights failed: %s", exc)
-            return f"{len(anomaly_df)} anomalies detected. Severity: {sev}."
+            return f"{unique_rows} anomalous rows detected out of {row_count:,}. Severity: {sev}."
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -775,20 +870,38 @@ class AnomalyEngine:
 
 def _method_result(df: pd.DataFrame, sev_col: str = "severity") -> Dict[str, Any]:
     if df is None or df.empty:
-        return {"stats": {"total": 0, "critical": 0, "high": 0, "medium": 0},
+        return {"stats": {"total": 0, "total_flags": 0, "critical": 0, "high": 0, "medium": 0},
                 "anomalies": []}
-    total = len(df)
-    vc    = df[sev_col].value_counts() if sev_col in df.columns else pd.Series(dtype=int)
-    keep  = [c for c in ["row_index","column","value","baseline","z_score",
-                          "stat_score","ml_score","ts_score","ensemble_score",
-                          "severity","stat_severity","date"]
-             if c in df.columns]
+    total_flags = len(df)
+
+    # Count unique anomalous rows — each row counted once at its worst severity
+    _SEV_RANK = {"CRITICAL": 3, "HIGH": 2, "MEDIUM": 1}
+    if "row_index" in df.columns and sev_col in df.columns:
+        unique_rows = int(df["row_index"].nunique())
+        row_sev = (
+            df.assign(_sev_rank=df[sev_col].map(_SEV_RANK).fillna(0))
+              .groupby("row_index")["_sev_rank"].max()
+              .map({3: "CRITICAL", 2: "HIGH", 1: "MEDIUM"})
+        )
+        vc = row_sev.value_counts()
+    elif "row_index" in df.columns:
+        unique_rows = int(df["row_index"].nunique())
+        vc = pd.Series(dtype=int)
+    else:
+        unique_rows = total_flags
+        vc = df[sev_col].value_counts() if sev_col in df.columns else pd.Series(dtype=int)
+
+    keep = [c for c in ["row_index","column","value","baseline","z_score",
+                         "stat_score","ml_score","ts_score","ensemble_score",
+                         "severity","stat_severity","date"]
+            if c in df.columns]
     return {
         "stats": {
-            "total":    total,
-            "critical": int(vc.get("CRITICAL", 0)),
-            "high":     int(vc.get("HIGH", 0)),
-            "medium":   int(vc.get("MEDIUM", 0)),
+            "total":       unique_rows,
+            "total_flags": total_flags,
+            "critical":    int(vc.get("CRITICAL", 0)),
+            "high":        int(vc.get("HIGH", 0)),
+            "medium":      int(vc.get("MEDIUM", 0)),
         },
         "anomalies": df[keep].head(200).to_dict("records"),
     }
@@ -813,7 +926,7 @@ async def detect_anomalies(req: AnomalyDetectRequest):
         raise HTTPException(status_code=400, detail="Invalid table name")
 
     try:
-        df = con.execute(f'SELECT * FROM "{req.table}" LIMIT 50000').df()
+        df = con.execute(f'SELECT * FROM "{req.table}"').df()
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Could not read table: {exc}")
 
@@ -846,6 +959,46 @@ async def detect_anomalies(req: AnomalyDetectRequest):
     ensemble_df = engine.ensemble(stat_df, ml_df, ts_df)
 
     # ── Build per-method results (for frontend method toggle) ─────────────────
+    # Helper: enrich a view with column/value/baseline/z_score when missing
+    def _enrich_view(view_df: pd.DataFrame) -> pd.DataFrame:
+        """Add column-level detail to views that only have row_index + score."""
+        if view_df.empty or "column" in view_df.columns:
+            return view_df
+        target_col = engine.profile.get("target_col")
+        num_cols   = engine.profile["num_cols"]
+        orig_df    = engine.df
+
+        # Precompute column stats for speed
+        col_stats = {}
+        for c in num_cols:
+            try:
+                col_stats[c] = (float(orig_df[c].mean()), float(orig_df[c].std()) + 1e-9)
+            except Exception:
+                pass
+
+        enriched_rows = []
+        for _, row in view_df.iterrows():
+            ri = int(row["row_index"])
+            if ri < 0 or ri >= len(orig_df):
+                enriched_rows.append(row.to_dict())
+                continue
+            best_col, best_val, best_base, best_z = target_col, 0.0, 0.0, 0.0
+            for c, (mu, sd) in col_stats.items():
+                try:
+                    val = float(orig_df.iloc[ri][c])
+                    z_  = (val - mu) / sd
+                    if abs(z_) > abs(best_z):
+                        best_col, best_val, best_base, best_z = c, val, mu, z_
+                except Exception:
+                    continue
+            d = row.to_dict()
+            d["column"]   = best_col or ""
+            d["value"]    = round(best_val, 4)
+            d["baseline"] = round(best_base, 4)
+            d["z_score"]  = round(best_z, 4)
+            enriched_rows.append(d)
+        return pd.DataFrame(enriched_rows)
+
     # Statistical method view
     stat_view = stat_df.copy() if not stat_df.empty else pd.DataFrame()
     if not stat_view.empty:
@@ -862,6 +1015,7 @@ async def detect_anomalies(req: AnomalyDetectRequest):
                 ml_view["ml_score"] >= 0.75, "CRITICAL",
                 np.where(ml_view["ml_score"] >= 0.50, "HIGH", "MEDIUM")
             )
+            ml_view = _enrich_view(ml_view)
 
     # TS method view — keep only rows above a meaningful ts_score threshold
     ts_view = pd.DataFrame()
@@ -872,6 +1026,7 @@ async def detect_anomalies(req: AnomalyDetectRequest):
                 ts_view["ts_score"] >= 0.75, "CRITICAL",
                 np.where(ts_view["ts_score"] >= 0.50, "HIGH", "MEDIUM")
             )
+            ts_view = _enrich_view(ts_view)
 
     methods = {
         "statistical": _method_result(stat_view),

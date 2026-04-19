@@ -3,7 +3,7 @@
   <h1>SENTINEL</h1>
   <p><strong>Production-grade multi-agent AI analytics platform</strong></p>
   <p>
-    LangGraph orchestration · DuckDB · ChromaDB · React 18 · FastAPI
+    LangGraph orchestration · DuckDB · Supabase pgvector · React 18 · FastAPI
   </p>
   <p>
     <img src="https://img.shields.io/badge/Python-3.10%2B-3B82F6?style=flat-square&logo=python&logoColor=white"/>
@@ -99,7 +99,7 @@ SENTINEL has five vertical layers:
 | Frontend | React 18, Vite, Tailwind | Chat, charts, anomaly/RCA dashboards, DataLab |
 | API | FastAPI, uvicorn | REST endpoints, request routing, chart capture |
 | Agent System | LangGraph, exec()-namespace | Intent classification, SQL generation, analysis |
-| Storage | DuckDB, ChromaDB, NetworkX | Query execution, vector memory, causal graph |
+| Storage | DuckDB, Supabase (pgvector), NetworkX | Query execution, vector memory, causal graph |
 | LLM | LangChain multi-provider | SQL generation, narrative, chart analysis |
 
 ### LangGraph Agent Pipeline
@@ -231,7 +231,7 @@ $$\text{MAD} = \text{median}\left(|x_i - \tilde{x}_W|\right)$$
 
 An outlier is declared when $|x_i - \tilde{x}_W| > k \cdot \text{MAD}$ with $k = 3$ (approximately $3\sigma$ for Gaussian data).
 
-### Layer 2: Machine Learning (35% ensemble weight, capped at 3,000 rows)
+### Layer 2: Machine Learning (35% ensemble weight)
 
 **Isolation Forest (60% of ML score)**
 
@@ -248,6 +248,8 @@ Let $P \in \mathbb{R}^{d \times k}$ be the top-$k$ principal component matrix. T
 $$\text{error} = \|\tilde{x} - P P^\top \tilde{x}\|^2$$
 
 High reconstruction error indicates that the observation does not lie near the principal subspace of normal data. This catches multi-dimensional anomalies that are not outliers in any single feature.
+
+**Scalable Scoring:** Models are fit on a random sample of up to 5,000 rows for speed, then all rows in the dataset are scored using the fitted models (`iso.score_samples(X_all)`, `pca.transform(X_all)`). This ensures every row receives an ML anomaly score regardless of dataset size.
 
 **MinCovDet Mahalanobis Distance (optional, when $n < 500$)**
 
@@ -288,13 +290,17 @@ The final ensemble score is a convex combination of the three layer scores:
 
 $$s_{\text{ensemble}} = 0.40 \cdot s_{\text{stat}} + 0.35 \cdot s_{\text{ml}} + 0.25 \cdot s_{\text{ts}}$$
 
-Severity thresholds applied to $s_{\text{ensemble}}$:
+Severity is determined purely by the ensemble score (no per-layer severity overrides):
 
 | Severity | Ensemble Threshold | Z-equivalent |
 |---|---|---|
 | CRITICAL | $\geq 0.70$ | $\|z\| \geq 4.0$ |
 | HIGH | $\geq 0.45$ | $\|z\| \geq 3.0$ |
-| MEDIUM | $\geq$ user threshold | $\|z\| \geq 2.0$ |
+| MEDIUM | $< 0.45$ | $\|z\| \geq 2.0$ |
+
+The stat score uses an adaptive divisor $\theta \times 2.5$ (where $\theta$ is the user threshold) so that the score range distributes naturally across severity buckets at different sensitivity settings.
+
+Anomaly counts are **deduplicated by unique row index**. A row with anomalies in 3 columns is counted once with the worst severity across its flags. The API response reports both `unique_rows` (true anomaly count) and `total_flags` (per-column count) to prevent inflated percentages.
 
 The API response includes per-method results under `methods.statistical`, `methods.ml`, `methods.timeseries`, and `methods.ensemble`, so users can toggle between detection strategies in the dashboard without re-running the analysis.
 
@@ -424,11 +430,11 @@ The anomaly boost of $+0.15$ links the RCA and anomaly detection pipelines: feat
 
 ![Memory Architecture](images/memory_architecture.png)
 
-SENTINEL maintains four tiers of persistent memory that survive server restarts and inform every query.
+SENTINEL maintains four tiers of persistent memory backed by Supabase PostgreSQL with pgvector that survive server restarts and inform every query.
 
 ### L2: Episodic Memory
 
-Every successfully answered query is stored as an episode in ChromaDB:
+Every successfully answered query is stored as an episode in Supabase (table `l2_episodic` with pgvector embeddings):
 
 ```python
 l2_store(question, sql, result_summary, dataset_type=domain)
@@ -442,11 +448,11 @@ l2_store(question, sql, result_summary, dataset_type=domain)
 
 **Domain isolation:** Retrieval is filtered by `_CURRENT_DATASET_TYPE`. E-commerce SQL patterns never surface when the active dataset is real estate data. This prevents the most common form of memory contamination in multi-dataset systems.
 
-Retrieval: query 4x top_k candidates from ChromaDB, filter by matching domain, return top_k most similar episodes.
+Retrieval: the `match_l2_episodes` Postgres RPC function performs a cosine-similarity vector search with domain filtering, returning the top_k most similar episodes.
 
 ### L3: Causal Graph
 
-A `NetworkX DiGraph` built from the uploaded schema captures structural knowledge:
+A `NetworkX DiGraph` built from the uploaded schema captures structural knowledge. The graph is also persisted to Supabase tables (`l3_nodes`, `l3_edges`) for inspection via the Memory panel:
 
 - Nodes: tables, columns, computed metrics, business rules
 - Edges: foreign key relationships (multiplicity as edge weight)
@@ -764,10 +770,10 @@ PORT=8000
 ```
 data/
 ├── sentinel_ecom.duckdb   # default e-commerce sample dataset
-├── chroma_bge/            # ChromaDB persistent storage (L2 + L4)
-├── l3_ecom.gml            # NetworkX causal graph (GML format)
 └── uploads/               # user-uploaded datasets (one .duckdb per file)
 ```
+
+Memory (L2/L3/L4) is stored remotely in Supabase PostgreSQL with pgvector — no local persistence files are needed.
 
 ---
 
@@ -777,11 +783,11 @@ data/
 |---|---|---|
 | SQL query (simple) | 2-8 s | LLM generation + DuckDB execution |
 | SQL query (complex with retry) | 8-25 s | Up to 5 correction iterations |
-| Anomaly detection (100k rows) | under 5 s | Vectorised layers, 3k ML sample cap |
+| Anomaly detection (100k rows) | under 8 s | Vectorised layers, fit on 5k sample → score all rows |
 | RCA analysis | 5-15 s | Parallel Spearman + selective Granger |
 | Forecast (Prophet) | 5-10 s | Adaptive seasonality fitting |
 | ML prediction (training) | 10-25 s | Feature engineering + cross-validation |
-| Memory retrieval (L2/L4) | under 100 ms | ChromaDB vector search |
+| Memory retrieval (L2/L4) | under 200 ms | Supabase pgvector cosine search |
 | Frontend build | ~10 s | Vite production bundle |
 
 Two main bottlenecks eliminated compared to naive implementations:
@@ -874,7 +880,7 @@ SENTINEL/
 fastapi>=0.111.0          uvicorn[standard]>=0.29.0   pydantic>=2.0.0
 langchain-core>=0.2.0     langchain-openai>=0.1.0     langchain-anthropic>=0.1.4
 langchain-google-genai    langchain-nvidia-ai-endpoints langgraph>=0.1.0
-duckdb>=1.0.0             chromadb>=0.5.0             sentence-transformers>=2.7.0
+duckdb>=1.0.0             supabase>=2.0.0             sentence-transformers>=2.7.0
 FlagEmbedding>=1.2.0      scikit-learn>=1.4.0         statsmodels>=0.14.0
 scipy>=1.13.0             numpy>=1.26.0               pandas>=2.2.0
 prophet>=1.1.5            xgboost>=2.0.0              sympy>=1.12
@@ -905,8 +911,11 @@ DuckDB runs in-process with zero configuration. For single-user analytical workl
 **Why BGE-Large instead of OpenAI embeddings for memory?**
 BGE-Large-en-v1.5 ranks at the top of the MTEB retrieval benchmark and runs locally without API calls. L2 memory retrieval must work even when the LLM provider is unavailable or rate-limited.
 
+**Why Supabase pgvector instead of ChromaDB?**
+Supabase provides a managed PostgreSQL database with the pgvector extension for vector similarity search. This eliminates the need for local ChromaDB persistence files (`chroma_bge/`), makes the memory system accessible from any instance (no file-system coupling), and consolidates all persistent state (L2, L3, L4) into a single hosted database. The `match_l2_episodes` and `match_l4_patterns` RPC functions perform cosine-similarity search with domain filtering in a single round trip.
+
 **Why domain-filtered memory?**
 Without domain filtering, an episode where `SELECT SUM(final_amount) FROM orders` answered a revenue question would surface as a few-shot example for a real estate price query. The resulting SQL would reference a non-existent `orders` table. Domain tagging on L2 and L4 eliminates this class of contamination entirely.
 
-**Why cap the ML layer at 3,000 rows?**
-After removing LOF, IsolationForest and PCA scale well beyond 3,000 rows. The cap still gives statistically stable results: Cochran's sample size formula gives $n \approx 384$ at 95% confidence for proportions, so 3,000 rows is nearly 8x the theoretical minimum. The main benefit is bounding worst-case latency.
+**Why fit-on-sample, score-all for the ML layer?**
+IsolationForest and PCA are trained on a random 5,000-row sample for speed, but every row in the dataset is then scored using the fitted models. This ensures all rows receive ML anomaly scores for the ensemble — previously only the 3k sampled rows were scored, leaving the remaining rows with `ml_score=0` and effectively wasting the 35% ML ensemble weight. The 5k fit cap keeps training under 2 seconds; scoring 100k+ rows with a fitted IsolationForest is O(n·log(n)) and adds negligible overhead.

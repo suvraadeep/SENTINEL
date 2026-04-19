@@ -1,42 +1,81 @@
 """
-SENTINEL Memory System — Multi-Domain Adaptive L2/L4 Memory
+SENTINEL Memory System — Multi-Domain Adaptive L2/L4 Memory (Supabase Edition)
 
 Architecture:
   L2 — Episodic cache: past queries tagged with dataset_type to prevent
         cross-dataset contamination (e-commerce episodes never surface for
-        real estate datasets).
+        real estate datasets).  Stored in Supabase pgvector.
 
   L4 — Procedural memory: domain-specific SQL patterns, seeded dynamically
         AFTER dataset upload. The seeding function detects the domain
         (e-commerce, real estate, financial, HR, SaaS, generic) from the
         actual column names and injects accurate few-shot patterns that
         reference the REAL table and column names — no more hardcoded 'orders'.
+        Stored in Supabase pgvector.
 
   Domain detection → seed_for_dataset_type(con) is called by namespace.py
   after every dataset upload and connection swap.
+
+  Backend: Supabase PostgreSQL with pgvector extension (replaces ChromaDB).
+  Embeddings: BAAI/bge-large-en-v1.5 (local, 1024-dimensional).
 """
 
+import os
 import hashlib
+from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional
 
-import chromadb
+# Load .env before reading Supabase credentials
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+except Exception:
+    pass
+
+# Wrap supabase import — if package is missing, all functions still get defined
+try:
+    from supabase import create_client, Client
+    _HAS_SUPABASE = True
+except ImportError:
+    _HAS_SUPABASE = False
+    Client = None  # type stub
+    print("  [Memory] WARNING: supabase package not installed! pip install supabase>=2.0.0")
+
 from sentence_transformers import SentenceTransformer
 
 print("Loading BAAI/bge-large-en-v1.5 (best MTEB retrieval model)...")
 embed_model = SentenceTransformer("BAAI/bge-large-en-v1.5")
 print(f"  Embedding dim: {embed_model.get_sentence_embedding_dimension()}")
 
-chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
+# ── Supabase client (replaces ChromaDB PersistentClient) ─────────────────────
+# Try namespace-injected values first (set by namespace.py line 412-414),
+# then fall back to os.environ (loaded by auth.py's load_dotenv).
+_SUPABASE_URL = (
+    globals().get("SUPABASE_URL")
+    or locals().get("SUPABASE_URL")
+    or os.environ.get("SUPABASE_URL", "")
+)
+_SUPABASE_KEY = (
+    globals().get("SUPABASE_KEY")
+    or locals().get("SUPABASE_KEY")
+    or os.environ.get("SUPABASE_KEY", "")
+)
 
-l2_collection = chroma_client.get_or_create_collection(
-    "l2_episodic",
-    metadata={"description": "Past query episodes — BGE-Large embeddings"}
-)
-l4_collection = chroma_client.get_or_create_collection(
-    "l4_procedural",
-    metadata={"description": "Verified SQL patterns for few-shot prompting"}
-)
+supabase: Optional["Client"] = None
+
+if not _HAS_SUPABASE:
+    print("  [Memory] Memory system will run in no-op mode (supabase package missing).")
+elif not _SUPABASE_URL or not _SUPABASE_KEY:
+    print("  [Memory] WARNING: SUPABASE_URL or SUPABASE_KEY not set!")
+    print("  [Memory] Memory system will run in no-op mode.")
+else:
+    try:
+        supabase = create_client(_SUPABASE_URL, _SUPABASE_KEY)
+        print(f"  [Memory] Supabase client connected to {_SUPABASE_URL[:40]}...")
+    except Exception as _exc:
+        print(f"  [Memory] WARNING: Supabase init failed: {_exc}")
+        print(f"  [Memory] Memory system will run in no-op mode.")
 
 # Track the currently active dataset type so l2_retrieve can filter
 _CURRENT_DATASET_TYPE: str = "generic"
@@ -53,21 +92,22 @@ def l2_store(question: str, sql: str, result_summary: str,
              feedback: str = "auto", score: float = 1.0,
              dataset_type: Optional[str] = None) -> None:
     """Store a query episode, tagged with its dataset domain."""
+    if not supabase:
+        return
     doc_id = hashlib.md5((question + sql).encode()).hexdigest()
     dtype  = dataset_type or _CURRENT_DATASET_TYPE
-    l2_collection.upsert(
-        ids=[doc_id],
-        embeddings=[embed(question)],
-        documents=[question],
-        metadatas=[{
-            "sql":            sql[:800],
-            "result_summary": result_summary[:400],
-            "feedback":       feedback,
-            "score":          float(score),
-            "timestamp":      datetime.now().isoformat(),
-            "dataset_type":   dtype,
-        }]
-    )
+    embedding = embed(question)
+    supabase.table("l2_episodic").upsert({
+        "id":             doc_id,
+        "question":       question,
+        "embedding":      embedding,
+        "sql_text":       sql[:800],
+        "result_summary": result_summary[:400],
+        "feedback":       feedback,
+        "score":          float(score),
+        "dataset_type":   dtype,
+        "created_at":     datetime.now().isoformat(),
+    }).execute()
 
 
 def l2_retrieve(question: str, top_k: int = 3) -> List[Dict]:
@@ -76,72 +116,163 @@ def l2_retrieve(question: str, top_k: int = 3) -> List[Dict]:
     Episodes from a different domain are excluded to prevent cross-dataset
     SQL contamination (e.g., orders SQL surfacing for a real estate query).
     """
-    if l2_collection.count() == 0:
+    if not supabase:
         return []
     try:
-        k = min(top_k * 4, l2_collection.count())
-        res = l2_collection.query(query_embeddings=[embed(question)], n_results=k)
-
-        docs  = (res.get("documents") or [[]])[0] or []
-        metas = (res.get("metadatas") or [[]])[0] or []
-
-        episodes = [
-            {"question": d, **m}
-            for d, m in zip(docs, metas)
-        ]
-
-        current = _CURRENT_DATASET_TYPE
-        filtered = [
-            ep for ep in episodes
-            if ep.get("dataset_type", "generic") in (current, "generic")
-        ]
-
-        return filtered[:top_k]
+        count_resp = supabase.table("l2_episodic").select("id", count="exact").execute()
+        if count_resp.count == 0:
+            return []
     except Exception:
+        return []
+    try:
+        query_emb = embed(question)
+        k = min(top_k * 4, 50)  # Fetch extra for domain filtering
+        current = _CURRENT_DATASET_TYPE
+
+        res = supabase.rpc("match_l2_episodes", {
+            "query_embedding": query_emb,
+            "match_count": k,
+            "filter_dataset": current,
+        }).execute()
+
+        episodes = []
+        for row in (res.data or []):
+            episodes.append({
+                "question":       row.get("question", ""),
+                "sql":            row.get("sql_text", ""),
+                "result_summary": row.get("result_summary", ""),
+                "feedback":       row.get("feedback", "auto"),
+                "score":          float(row.get("score", 1.0)),
+                "dataset_type":   row.get("dataset_type", "generic"),
+            })
+
+        return episodes[:top_k]
+    except Exception as e:
+        print(f"  [Memory] L2 retrieve error: {e}")
         return []
 
 
 # ── L4 — Procedural (pattern) memory ─────────────────────────────────────────
 def l4_store(problem_type: str, sql_template: str, description: str,
              dataset_type: str = "generic") -> None:
+    if not supabase:
+        return
     doc_id = hashlib.md5(problem_type.encode()).hexdigest()
-    l4_collection.upsert(
-        ids=[doc_id],
-        embeddings=[embed(problem_type)],
-        documents=[problem_type],
-        metadatas=[{
-            "sql_template": sql_template[:800],
-            "description":  description[:300],
-            "dataset_type": dataset_type,
-        }]
-    )
+    embedding = embed(problem_type)
+    supabase.table("l4_procedural").upsert({
+        "id":           doc_id,
+        "problem_type": problem_type,
+        "embedding":    embedding,
+        "sql_template": sql_template[:800],
+        "description":  description[:300],
+        "dataset_type": dataset_type,
+    }).execute()
 
 
 def l4_retrieve(question: str, top_k: int = 2) -> List[Dict]:
     """Retrieve SQL patterns, filtered by current dataset domain."""
-    if l4_collection.count() == 0:
+    if not supabase:
         return []
     try:
-        k = min(top_k * 4, l4_collection.count())
-        res = l4_collection.query(query_embeddings=[embed(question)], n_results=k)
-
-        docs  = (res.get("documents") or [[]])[0] or []
-        metas = (res.get("metadatas") or [[]])[0] or []
-
-        patterns = [
-            {"problem_type": d, **m}
-            for d, m in zip(docs, metas)
-        ]
-
-        current = _CURRENT_DATASET_TYPE
-        filtered = [
-            p for p in patterns
-            if p.get("dataset_type", "generic") in (current, "generic")
-        ]
-
-        return filtered[:top_k]
+        count_resp = supabase.table("l4_procedural").select("id", count="exact").execute()
+        if count_resp.count == 0:
+            return []
     except Exception:
         return []
+    try:
+        query_emb = embed(question)
+        k = min(top_k * 4, 50)
+        current = _CURRENT_DATASET_TYPE
+
+        res = supabase.rpc("match_l4_patterns", {
+            "query_embedding": query_emb,
+            "match_count": k,
+            "filter_dataset": current,
+        }).execute()
+
+        patterns = []
+        for row in (res.data or []):
+            patterns.append({
+                "problem_type": row.get("problem_type", ""),
+                "sql_template": row.get("sql_template", ""),
+                "description":  row.get("description", ""),
+                "dataset_type": row.get("dataset_type", "generic"),
+            })
+
+        return patterns[:top_k]
+    except Exception as e:
+        print(f"  [Memory] L4 retrieve error: {e}")
+        return []
+
+
+# ── Supabase helper functions (used by curator / namespace) ──────────────────
+def l2_count() -> int:
+    """Return the total number of L2 episodes."""
+    if not supabase:
+        return 0
+    try:
+        resp = supabase.table("l2_episodic").select("id", count="exact").execute()
+        return resp.count or 0
+    except Exception:
+        return 0
+
+
+def l4_count() -> int:
+    """Return the total number of L4 patterns."""
+    if not supabase:
+        return 0
+    try:
+        resp = supabase.table("l4_procedural").select("id", count="exact").execute()
+        return resp.count or 0
+    except Exception:
+        return 0
+
+
+def l2_get_all() -> Dict:
+    """Get all L2 episodes (for curator dedup)."""
+    _empty = {"ids": [], "documents": [], "metadatas": [], "embeddings": []}
+    if not supabase:
+        return _empty
+    try:
+        resp = supabase.table("l2_episodic").select("*").execute()
+        return {
+            "ids": [r["id"] for r in resp.data],
+            "documents": [r["question"] for r in resp.data],
+            "metadatas": [r for r in resp.data],
+            "embeddings": [r.get("embedding") for r in resp.data],
+        }
+    except Exception:
+        return _empty
+
+
+def l2_delete(ids: List[str]) -> None:
+    """Delete L2 episodes by ID list."""
+    if not supabase or not ids:
+        return
+    supabase.table("l2_episodic").delete().in_("id", ids).execute()
+
+
+def l4_get_all() -> Dict:
+    """Get all L4 patterns."""
+    _empty = {"ids": [], "documents": [], "metadatas": []}
+    if not supabase:
+        return _empty
+    try:
+        resp = supabase.table("l4_procedural").select("*").execute()
+        return {
+            "ids": [r["id"] for r in resp.data],
+            "documents": [r["problem_type"] for r in resp.data],
+            "metadatas": [r for r in resp.data],
+        }
+    except Exception:
+        return _empty
+
+
+def l4_delete(ids: List[str]) -> None:
+    """Delete L4 patterns by ID list."""
+    if not supabase or not ids:
+        return
+    supabase.table("l4_procedural").delete().in_("id", ids).execute()
 
 
 # ── Domain detection ───────────────────────────────────────────────────────────
@@ -647,7 +778,7 @@ def seed_for_dataset_type(con) -> str:
 
     # 2. Clear any patterns from a different domain (prevent contamination)
     try:
-        existing = l4_collection.get()
+        existing = l4_get_all()
         ids_to_delete = [
             doc_id for doc_id, meta in zip(
                 existing.get("ids", []), existing.get("metadatas", [])
@@ -655,7 +786,7 @@ def seed_for_dataset_type(con) -> str:
             if meta.get("dataset_type", "generic") not in (domain, "generic")
         ]
         if ids_to_delete:
-            l4_collection.delete(ids=ids_to_delete)
+            l4_delete(ids_to_delete)
             print(f"  [Memory] Cleared {len(ids_to_delete)} stale patterns "
                   f"(previous domain)")
     except Exception as exc:
@@ -732,7 +863,7 @@ def _cleanup_legacy_patterns() -> None:
         "payments", "shipments", "reviews", "cart",
     }
     try:
-        res = l4_collection.get()
+        res = l4_get_all()
         ids_to_delete = []
         for doc_id, meta in zip(res.get("ids", []), res.get("metadatas", [])):
             sql_upper = meta.get("sql_template", "").upper()
@@ -745,7 +876,7 @@ def _cleanup_legacy_patterns() -> None:
             if has_hardcoded and no_type_tag:
                 ids_to_delete.append(doc_id)
         if ids_to_delete:
-            l4_collection.delete(ids=ids_to_delete)
+            l4_delete(ids_to_delete)
             print(f"  [Memory] Cleaned {len(ids_to_delete)} legacy untagged L4 patterns")
     except Exception as exc:
         print(f"  [Memory] Legacy cleanup warning (non-fatal): {exc}")
@@ -753,5 +884,5 @@ def _cleanup_legacy_patterns() -> None:
 
 _cleanup_legacy_patterns()
 
-print(f"L2 episodes: {l2_collection.count()} | L4 patterns: {l4_collection.count()}")
+print(f"L2 episodes: {l2_count()} | L4 patterns: {l4_count()}")
 print(f"Embedding dim: {len(embed('test'))}")

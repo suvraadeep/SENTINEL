@@ -1201,7 +1201,7 @@ async def analyze_rca(req: RCARequest):
         raise HTTPException(status_code=400, detail="Invalid table name")
 
     try:
-        df = con.execute(f'SELECT * FROM "{req.table}" LIMIT 50000').df()
+        df = con.execute(f'SELECT * FROM "{req.table}"').df()
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Could not read table: {exc}")
 
@@ -1257,7 +1257,7 @@ async def rca_chat(req: RCAChatRequest):
     engine  = None
     if table and con and re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", table):
         try:
-            df         = con.execute(f'SELECT * FROM "{table}" LIMIT 20000').df()
+            df         = con.execute(f'SELECT * FROM "{table}"').df()
             target_col = ctx.get("target_col") or ctx.get("profile", {}).get("target_col")
             engine     = CausalRCAEngine(df, table_name=table, target_col=target_col)
             engine._spearman_cache = ctx.get("statistics", {}).get("spearman")
@@ -1309,7 +1309,7 @@ async def traverse_feature(req: RCATraverseRequest):
         raise HTTPException(status_code=400, detail="Invalid table name")
 
     try:
-        df = con.execute(f'SELECT * FROM "{req.table}" LIMIT 20000').df()
+        df = con.execute(f'SELECT * FROM "{req.table}"').df()
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Could not read table: {exc}")
 

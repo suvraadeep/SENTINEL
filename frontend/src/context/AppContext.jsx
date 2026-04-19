@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { getMemoryStats, removeDataset as apiRemoveDataset } from '../api/client'
+import { getMemoryStats, getDatasets, removeDataset as apiRemoveDataset } from '../api/client'
 
 const AppContext = createContext(null)
 
@@ -127,6 +127,18 @@ export function AppProvider({ children }) {
     const id = setInterval(refreshMemory, 30_000)
     return () => clearInterval(id)
   }, [isReady, refreshMemory])
+
+  // Fetch existing datasets from backend on app ready (handles auto-reconnect)
+  useEffect(() => {
+    if (!isReady) return
+    getDatasets()
+      .then((list) => {
+        if (Array.isArray(list) && list.length > 0) {
+          list.forEach((ds) => addDataset(ds))
+        }
+      })
+      .catch(() => {})
+  }, [isReady]) // eslint-disable-line
 
   const addMessage = useCallback((msg) => {
     const newMsg = { id: Date.now() + Math.random(), timestamp: new Date().toISOString(), ...msg }
